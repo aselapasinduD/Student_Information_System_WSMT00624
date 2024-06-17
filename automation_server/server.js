@@ -1,8 +1,17 @@
+require('dotenv').config();
 const express = require("express");
-const app = express();
+const api = require("./middleware/api");
+const auth = require("./controllers/helper/auth");
 
-app.get("/",(req, res) =>{
-	res.send("Hello World");
+const app = express();
+app.use(express.json());
+
+app.use(auth);
+
+app.use("/api", api);
+
+app.get("*",(req, res) =>{
+	res.send("404 Error Not Found Any API");
 });
 
-app.listen(3000,() => console.log("Server Is Running"));
+app.listen(3001,() => console.log("Server Is Running"));
