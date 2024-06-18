@@ -1,25 +1,37 @@
-var express = require('express');
-var path = require('path');
-var cors = require('cors');
-var logger = require('morgan');
+require('dotenv').config();
+const express = require('express');
+const path = require('path');
+const cors = require('cors');
+const logger = require('morgan');
+const session = require('express-session');
 
-var indexRouter = require('./routes/index');
-var AdminPanel = require('./routes/AdminPanel');
+const Auth = require('./controllers/admin/auth');
+const indexRouter = require('./routes/index');
+const AdminPanelRouter = require('./routes/adminPanel');
+const AdminLoginRouter = require('./routes/adminLogin');
 
-var app = express();
+const app = express();
 
+app.use(session({
+  secret: 'asela2001',
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 1,
+    secure: false
+  },
+  saveUninitialized: false,
+}));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'admin_panel/build/')));
 
-// Index API
-app.use('/', indexRouter);
+// Admin Panel
+app.use('/admin-panel', Auth, AdminPanelRouter);
 
-// API
-app.use('/admin-panel', AdminPanel);
+// Supre Admin Login
+app.use('/admin-login', AdminLoginRouter);
 
-// All Other Request will return to index
+// All Other Request will return to Static Website
 app.get('*', function(req, res, next) {
     res.sendFile(path.join(__dirname, 'admin_panel/build/index.html'));
   });
