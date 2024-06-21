@@ -7,8 +7,10 @@ const session = require('express-session');
 
 const Auth = require('./controllers/admin/auth');
 const indexRouter = require('./routes/index');
-const AdminPanelRouter = require('./routes/adminPanel');
-const AdminLoginRouter = require('./routes/adminLogin');
+const adminPanelRouter = require('./routes/adminPanel');
+const adminLoginRouter = require('./routes/adminLogin');
+const sendMailRouter = require('./routes/sendMail');
+const sendWhastappMsgRouter = require('./routes/sendWhatsappMsg');
 
 const app = express();
 
@@ -26,10 +28,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'admin_panel/build/')));
 
 // Admin Panel
-app.use('/admin-panel', Auth, AdminPanelRouter);
+app.use('/admin-panel', Auth, adminPanelRouter);
 
 // Supre Admin Login
-app.use('/admin-login', AdminLoginRouter);
+app.use('/admin-login', adminLoginRouter);
+
+// Send mail messages
+app.use('/mail', sendMailRouter);
+app.use('/whatsapp_msg', sendWhastappMsgRouter);
 
 // All Other Request will return to Static Website
 app.get('*', function(req, res, next) {

@@ -1,5 +1,3 @@
-
-
 const Auth = (req, res, next) => {
     if(req.session.authenticated){
         console.log("Auth is Success.");

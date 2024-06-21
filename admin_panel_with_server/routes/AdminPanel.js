@@ -5,15 +5,18 @@ const router = express.Router();
 
 const Read = require("../controllers/read");
 const Create = require("../controllers/create");
+const Update = require("../controllers/update");
+const Delete = require("../controllers/delete");
 
 const read = new Read();
 const create = new Create();
+const update = new Update();
+const _delete = new Delete();
 
 // Get admin panel static website.
 router.get('/', function(req, res, next) {
   res.sendFile(path.join(__dirname, "../admin_panel/build", "index.html"));
 });
-
 
 // APIs
 router.get('/students', async (req, res) => {
@@ -26,17 +29,18 @@ router.get('/students/referral-ids', async (req, res) => {
   console.log("Geting referral IDs");
   res.status(200).json({message: 'Get referral IDs success.', body:referralIds});
 });
-
 router.post('/student', async (req, res) => {
   create.addStudent(req.body);
   console.log("Student Added Success.");
   res.status(200).json({message: 'Post student success.'});
 });
 router.put('/student', async (req, res) => {
+  update.udpateStudent(req.body);
   console.log("Student Updated Success.");
   res.status(200).json({message: 'Put student success.'});
-})
-router.delete('/student', async (req, res) => {
+});
+router.delete('/student/:id', async (req, res) => {
+  _delete.deleteStudent(req.params);
   console.log("Student Deleted.");
   res.status(200).json({message: 'Delete student success.'});
 });

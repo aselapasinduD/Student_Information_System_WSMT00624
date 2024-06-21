@@ -7,10 +7,10 @@ class Create{
     }
     
     async addStudent(student){
-        const {fullname, email, wanumber} = student;
+        const {fullname, email, wanumber, referralwa} = student;
         const datetime = new Date();
 
-        console.log(`fullname: ${fullname}\nemail: ${email}\nwanumber: ${wanumber}\ndate: ${datetime}`);
+        console.log(`fullname: ${fullname}\nemail: ${email}\nwanumber: ${wanumber}\nreferralwa: ${referralwa}\ndate: ${datetime}`);
         // const addStudentSQL = `INSERT INTO student(full_name, email, wa_number, register_at) 
         // VALUES ('${fullname}', '${email}', ${wanumber}, '${datetime}')`;
     }
