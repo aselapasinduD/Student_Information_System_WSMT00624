@@ -19,12 +19,12 @@ routes.post("/:access_key/student", async (req, res, next) => {
     const AccessKey = req.params.access_key;
     console.log(req.body.student);
 
-    if (process.env.ACCESS_KEY === AccessKey){
-        const resluts = await create_.addStudent(req.body.student);
-        res.status(200).json({message: "Success!", result: resluts});
+    if (process.env.ACCESS_KEY !== AccessKey){
+        res.status(403).send("You Don't Have Access for this Api.");
         return
     }
-    res.status(403).send("You Don't Have Access for this Api.");
+    const resluts = await create_.addStudent(req.body.student);
+    res.status(200).json({message: "Success!", result: resluts});
 });
 
 module.exports = routes;

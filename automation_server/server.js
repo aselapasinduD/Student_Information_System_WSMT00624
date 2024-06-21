@@ -14,4 +14,4 @@ app.get("*",(req, res) =>{
 	res.send("404 Error Not Found Any API");
 });
 
-app.listen(3001,() => console.log("Server Is Running"));
+app.listen(3002,() => console.log("Server Is Running"));

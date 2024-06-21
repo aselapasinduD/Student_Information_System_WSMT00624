@@ -1,7 +1,9 @@
 const db_connection = require("./helper/database");
 const Helper = require("./helper/helperFunctions");
+const MainServer = require("./mainServerFunctions");
 
 const help = new Helper();
+const mainServer = new MainServer();
 
 class create{
     #db;
@@ -11,25 +13,36 @@ class create{
     }
 
     async addStudent(student){
+        const {FullName, Email, WANumber, ReferralWA, RegisterAt} = student;
         let result;
-        const referralWA = parseInt(student.ReferralWA);
-        const timestampfromatted = help.formatTimestamp(student.RegisterAt);
+        const referralWA = parseInt(ReferralWA);
+        const timestampfromatted = help.formatTimestamp(RegisterAt);
         console.log(timestampfromatted);
         
         // Add Students to the Database
         const addStudentSQL = `INSERT INTO student(full_name, email, wa_number, register_at) 
-        VALUES ('${student.FullName}', '${student.Email}', ${parseInt(student.WANumber)}, '${timestampfromatted}')`;
+        VALUES ('${FullName}', '${Email}', ${parseInt(WANumber)}, '${timestampfromatted}')`;
 
         try {
             [result] = await this.#db.promise().query(addStudentSQL);
             console.log('Added Student Is Success\n', result);
+            const sendMail = await mainServer.sendMail(FullName, Email);
+            console.log("Send Mail:\n", sendMail);
+            const sendWhastappMsg = await mainServer.sendWhastappMsg(WANumber);
+            console.log("Send Whatsapp Messages:\n", sendWhastappMsg);
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY'){
                 console.log("Phone Number Duplicate Error!:", error.sqlMessage);
                 return "Phone Number Duplicate Error!";
             } else {
-                console.log("Query Exicution Error!: ", error.sqlMessage);
-                return "Query Exicution Error!";
+                if(error.sqlMessage){
+                    console.log("Query Exicution Error!: ", error.sqlMessage);
+                    return "Query Exicution Error!";
+                } else {
+                    console.log("Exicution Error!: ", error);
+                    return "Exicution Error!";
+                }
+                
             };
         }
 
