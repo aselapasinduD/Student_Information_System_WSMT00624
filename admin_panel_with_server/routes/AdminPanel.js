@@ -21,14 +21,16 @@ router.get('/', function(req, res, next) {
 // APIs
 router.get('/students', async (req, res) => {
   const students = await read.getStudents();
+  const makeStudent = async () => {
+    for(let i = 0; i < students.length; i++) {
+      const referralStudents = await read.getReferralStudents(students[i].id);
+      students[i].referral_student = referralStudents;
+    };
+  }
+  await makeStudent();
   res.status(200).json({message: 'Get student success.', body:students});
 });
 
-router.get('/students/referral-ids', async (req, res) => {
-  const referralIds = await read.getReferralIDs();
-  console.log("Geting referral IDs");
-  res.status(200).json({message: 'Get referral IDs success.', body:referralIds});
-});
 router.post('/student', async (req, res) => {
   create.addStudent(req.body);
   console.log("Student Added Success.");

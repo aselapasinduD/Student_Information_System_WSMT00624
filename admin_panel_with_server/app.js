@@ -14,6 +14,10 @@ const sendWhastappMsgRouter = require('./routes/sendWhatsappMsg');
 
 const app = express();
 
+app.use(cors({
+  origin: 'http://localhost:3001'
+}));
+
 app.use(session({
   secret: 'asela2001',
   cookie: {
@@ -27,8 +31,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'admin_panel/build/')));
 
+app.use('/', indexRouter);
 // Admin Panel
-app.use('/admin-panel', Auth, adminPanelRouter);
+app.use('/admin-panel', adminPanelRouter);
 
 // Supre Admin Login
 app.use('/admin-login', adminLoginRouter);

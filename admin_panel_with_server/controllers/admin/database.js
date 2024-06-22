@@ -14,10 +14,10 @@ const db_connection = () => {
             id INT NOT NULL AUTO_INCREMENT,
             full_name VARCHAR(50) NOT NULL,
             email VARCHAR(320) NOT NULL,
-            wa_number INT(9) UNIQUE NOT NULL,
+            wa_number BIGINT(12) UNIQUE NOT NULL,
             register_at DATETIME,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
         )`;
         const createRefersTo = `CREATE TABLE IF NOT EXISTS refers_to (
@@ -25,7 +25,7 @@ const db_connection = () => {
             student_id INT NOT NULL,
             referral_id INT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             FOREIGN KEY (student_id) REFERENCES student(id)
         )`;
@@ -34,20 +34,32 @@ const db_connection = () => {
             username VARCHAR(20) NOT NULL,
             password VARCHAR(64) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
         )`;
         db.query(createStudent, (err, result) => {
-            if (err) throw err;
-            console.log('student Table Created.\n', result);
+            try{
+                if (err) throw err;
+                console.log('Student Table Created.\n', result);
+            } catch (error) {
+                console.log('Error During Creating student Table.\n', error);
+            }
         });
         db.query(createRefersTo, (err, result) => {
-            if (err) throw err;
-            console.log('refers_to Table Created.\n', result);
+            try{
+                if (err) throw err;
+                console.log('refers_to Table Created.\n', result);
+            } catch (error) {
+                console.log('Error During Creating refers_to Table.\n', error);
+            }
         });
         db.query(createAdmin, (err, result) => {
-            if (err) throw err;
-            console.log('super_admin Table Created.\n', result);
+            try{
+                if (err) throw err;
+                console.log('super_admin Table Created.\n', result);
+            } catch (error) {
+                console.log('Error During Creating super_admin Table.\n', error);
+            }
         });
 
         const superAdmin = new SuperAdmin(process.env.SUPER_ADMIN_USERNAME, process.env.SUPER_ADMIN_PASSWORD);
@@ -57,7 +69,7 @@ const db_connection = () => {
         return db;
     } catch (error) {
         console.log('Error whiel connectiong with the database.');
-        throw error;
+        return error;
     }
 };
 

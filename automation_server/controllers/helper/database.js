@@ -14,10 +14,10 @@ const db_connection = () => {
             id INT NOT NULL AUTO_INCREMENT,
             full_name VARCHAR(50) NOT NULL,
             email VARCHAR(320) NOT NULL,
-            wa_number INT(9) UNIQUE NOT NULL,
+            wa_number BIGINT(12) UNIQUE NOT NULL,
             register_at DATETIME,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
         )`;
         const createRefersTo = `CREATE TABLE IF NOT EXISTS refers_to (
@@ -25,7 +25,7 @@ const db_connection = () => {
             student_id INT NOT NULL,
             referral_id INT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             FOREIGN KEY (student_id) REFERENCES student(id)
         )`;

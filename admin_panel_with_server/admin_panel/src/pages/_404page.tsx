@@ -2,9 +2,9 @@ const _404page = () => {
     return(
         <div className="App">
             <header className="App-header">
-                <p>
+                <h1>
                     404 Error Not Page.
-                </p>
+                </h1>
             </header>
         </div>
     )

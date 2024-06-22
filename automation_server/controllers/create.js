@@ -18,6 +18,8 @@ class create{
         const referralWA = parseInt(ReferralWA);
         const timestampfromatted = help.formatTimestamp(RegisterAt);
         console.log(timestampfromatted);
+        console.log(WANumber);
+        console.log(parseInt(WANumber));
         
         // Add Students to the Database
         const addStudentSQL = `INSERT INTO student(full_name, email, wa_number, register_at) 
