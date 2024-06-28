@@ -25,26 +25,27 @@ router.get('/students', async (req, res) => {
     for(let i = 0; i < students.length; i++) {
       const referralStudents = await read.getReferralStudents(students[i].id);
       students[i].referral_student = referralStudents;
+      students[i].number_of_referrals = referralStudents.length;
     };
   }
+  students.reverse();
   await makeStudent();
-  res.status(200).json({message: 'Get student success.', body:students});
+  res.status(200).json({message: 'Get student success.', from: 'Main Server', body:students});
 });
-
 router.post('/student', async (req, res) => {
-  create.addStudent(req.body);
-  console.log("Student Added Success.");
-  res.status(200).json({message: 'Post student success.'});
+  const result = await create.addStudent(req.body);
+  console.log(result);
+  res.status(200).json({message: result, from: 'Main Server'});
 });
 router.put('/student', async (req, res) => {
-  update.udpateStudent(req.body);
-  console.log("Student Updated Success.");
-  res.status(200).json({message: 'Put student success.'});
+  const result = await update.udpateStudent(req.body);
+  console.log(result);
+  res.status(200).json({message: result, from: 'Main Server'});
 });
-router.delete('/student/:id', async (req, res) => {
-  _delete.deleteStudent(req.params);
-  console.log("Student Deleted.");
-  res.status(200).json({message: 'Delete student success.'});
+router.delete('/student', async (req, res) => {
+  const result = await _delete.deleteStudent(req.body);
+  console.log(result);
+  res.status(200).json({message: result, from: 'Main Server'});
 });
 
 module.exports = router;

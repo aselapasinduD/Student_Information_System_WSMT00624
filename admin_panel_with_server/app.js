@@ -6,6 +6,7 @@ const logger = require('morgan');
 const session = require('express-session');
 
 const Auth = require('./controllers/admin/auth');
+const AuthLogin = require('./controllers/admin/loginAuth');
 const indexRouter = require('./routes/index');
 const adminPanelRouter = require('./routes/adminPanel');
 const adminLoginRouter = require('./routes/adminLogin');
@@ -33,10 +34,10 @@ app.use(express.static(path.join(__dirname, 'admin_panel/build/')));
 
 app.use('/', indexRouter);
 // Admin Panel
-app.use('/admin-panel', adminPanelRouter);
+app.use('/admin-panel', Auth, adminPanelRouter);
 
 // Supre Admin Login
-app.use('/admin-login', adminLoginRouter);
+app.use('/admin-login', AuthLogin, adminLoginRouter);
 
 // Send mail messages
 app.use('/mail', sendMailRouter);
