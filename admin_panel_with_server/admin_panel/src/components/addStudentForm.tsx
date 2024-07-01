@@ -10,10 +10,10 @@ interface Notification{
 
 interface props{
     handleFormClose: () => void;
-    collectNotification: (notification: Notification) => void;
+    collectNotifications: (notification: Notification) => void;
 }
 
-const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotification}) =>{
+const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotifications}) =>{
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -33,10 +33,10 @@ const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotification})
             })
             if(response.ok) {
                 const notification = await response.json() as Notification;
-                collectNotification(notification);
+                collectNotifications(notification);
             } else {
                 console.log("Add Student didn't Success");
-                collectNotification({message: "Add Student didn't Success", from: "Server", error: true});
+                collectNotifications({message: "Add Student didn't Success", from: "Server", error: true});
             }
         }
         await submitForm();

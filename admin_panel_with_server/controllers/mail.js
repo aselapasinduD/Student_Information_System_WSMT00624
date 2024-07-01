@@ -1,5 +1,9 @@
 const nodemailer = require('nodemailer');
 
+const Read = require("./read");
+
+const read = new Read();
+
 // mail - nodemail@project.innentasolutions.com
 // pass - qKjmBX8Z&]P=
 
@@ -21,35 +25,48 @@ class SendMail {
     }
 
     async sendMail(options){
-        const {to, subject, text, html = null} = options;
+        const {to, subject, emailcontent, ishtml} = options;
         let mailOptions;
 
-        if(html){
+        const [{full_name, email, wa_number}] = await read.getStudentById(to);
+
+        if(ishtml === "html"){
+            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name);
+            newEmailContent = newEmailContent.replace(/{{email}}/g, email);
+            newEmailContent = newEmailContent.replace(/{{wa_number}}/g, wa_number);
+            console.log(newEmailContent);
+
             mailOptions = {
                 from: 'Project <project@innentasolutions.com>',
-                to: to,
+                to: email,
                 cc: 'project@innentasolutions.com',
                 subject: subject,
-                html: html
+                html: newEmailContent
             }
         } else {
+            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name);
+            newEmailContent = newEmailContent.replace(/{{email}}/g, email);
+            newEmailContent = newEmailContent.replace(/{{wa_number}}/g, wa_number);
+            console.log(newEmailContent);
+
             mailOptions = {
                 from: 'Project <project@innentasolutions.com>',
-                to: to,
+                to: email,
                 cc: 'project@innentasolutions.com',
                 subject: subject,
-                text: text
+                text: newEmailContent
             }
         }
         
         try{
             const info = await this.#transporter.sendMail(mailOptions);
             console.log("Send mail:/n", info);
-            return true
+            return `Sending mail to ${email} success.`;
         } catch (error){
             console.log("Error is Counting When try to send the mail: ", error);
-            return false
+            return `Error is Counting When try to send the mail: ${email}`;
         }
+        return "Working Send Mail."
     }
 }
 

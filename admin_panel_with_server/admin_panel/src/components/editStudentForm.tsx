@@ -16,11 +16,11 @@ interface EditStudent{
 
 interface props{
     handleFormClose: () => void;
-    collectNotification: (notification: Notification) => void;
+    collectNotifications: (notification: Notification) => void;
     editStudent: EditStudent;
 }
 
-const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotification, editStudent}) =>{
+const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications, editStudent}) =>{
     let {id} = editStudent;
     const [fullName, setFullName] = useState<string>(editStudent.full_name);
     const [email, setEmail] = useState<string>(editStudent.email);
@@ -56,15 +56,15 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotification,
             })
             if(response.ok) {
                 const notification = await response.json() as Notification;
-                collectNotification(notification);
+                collectNotifications(notification);
             } else {
                 console.log("Add Student didn't Success");
-                collectNotification({message: "Edit Student didn't Success", from: "Server", error: true});
+                collectNotifications({message: "Edit Student didn't Success", from: "Server", error: true});
             }
         }
         await submitForm();
     }
-    console.log(editStudent);
+
     return(
         <div className="form">
             <div>

@@ -140,10 +140,11 @@ interface EnhancedTableToolbarProps {
   numSelected: number;
   handleAddFormOpen: () => void;
   handleDelete: () => void;
+  handleCustomeEmailForAll: () => void;
 }
 
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-  const { numSelected, handleAddFormOpen, handleDelete } = props;
+  const { numSelected, handleAddFormOpen, handleDelete, handleCustomeEmailForAll } = props;
 
   return (
     <Toolbar
@@ -173,13 +174,22 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
         </Typography>
       )}
       {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton
-            onClick={handleDelete}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
+        <Fragment>
+          <Tooltip title="Delete">
+            <IconButton
+              onClick={handleDelete}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Send">
+            <IconButton
+              onClick={handleCustomeEmailForAll}
+            >
+              <SendIcon />
+            </IconButton>
+          </Tooltip>
+        </Fragment>
       ) : (
         <Fragment>
           <Tooltip title="Add Student">
@@ -212,6 +222,7 @@ interface RowProps {
   index: number;
   isSelected: (selectedID: number ) => boolean;
   handleSelectClick: (event: React.MouseEvent<unknown>, id: number) => void;
+  handleCustormEmailFormOpen: (id: number[]) => void;
   handleEditFormOpen: (EditStudent: EditStudent) => void;
 }
 
@@ -221,7 +232,7 @@ const formatDateTime = (date: string) => {
   return formattedDate;
 }
 
-const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, handleEditFormOpen}) => {
+const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, handleCustormEmailFormOpen, handleEditFormOpen}) => {
   const [open, setOpen] = useState(false);
   const isItemSelected = isSelected(row.id);
   const labelId = `checkbox-student-${index}`;
@@ -267,7 +278,9 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
         <TableCell >{formatDateTime(row.created_at)}</TableCell>
         <TableCell >
           <Tooltip title="Send">
-            <IconButton>
+            <IconButton
+              onClick={() => handleCustormEmailFormOpen([row.id])}
+            >
               <SendIcon />
             </IconButton>
           </Tooltip>
@@ -287,7 +300,7 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
               <Typography variant="h6" gutterBottom component="p">
-                Referral Students - {row.referral_student.length}
+                Referral Students - {row.number_of_referrals}
               </Typography>
               <Table size="small" aria-label="purchases">
                 <TableHead>
@@ -301,7 +314,7 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {row.referral_student.length !== 0? row.referral_student.map((student, index) => (
+                  {row.referral_student.length != 0? row.referral_student.map((student, index) => (
                     <TableRow key={index}>
                       <TableCell >{student.id}</TableCell>
                       <TableCell >{student.full_name}</TableCell>
@@ -334,6 +347,7 @@ interface rowStudents{
   rows: Student[];
   handleAddFormOpen: () => void;
   handleEditFormOpen: (EditStudent: EditStudent) => void;
+  handleCustormEmailFormOpen: (id: readonly number[]) => void;
   collectNotifications: (notification: Notification) => void;
 }
 
@@ -397,11 +411,11 @@ const columnNames: readonly ColumnNames[] = [
   }
 ]
 
-const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFormOpen, collectNotifications}) => {
+const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFormOpen, handleCustormEmailFormOpen, collectNotifications}) => {
     const [order, setOrder] = React.useState<Order>('desc');
     const [orderBy, setOrderBy] = React.useState<keyof Student | Unassigned>('id');
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
     const [selected, setSelected] = useState<readonly number[]>([]);
     const numSelected = selected.length;
     const rowCount = rows.length;
@@ -484,6 +498,10 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
       setPage(0);
     };
 
+    const handleCustomeEmailForAll = () => {
+      handleCustormEmailFormOpen(selected);
+    }
+
     return (
       <Fragment>
         <Paper sx={{marginTop: "20px"}}>
@@ -491,6 +509,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
           numSelected={numSelected}
           handleAddFormOpen={handleAddFormOpen}
           handleDelete={handleDelete}
+          handleCustomeEmailForAll={handleCustomeEmailForAll}
         />
         <TableContainer>
             <Table aria-label="collapsible table" size={"small"}>
@@ -538,7 +557,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
                 </TableHead>
                 <TableBody>
                     {visibleRows.map((row, index) => (
-                        <Row key={index} row={row} index={index} isSelected={isSelected} handleSelectClick={handleSelectClick} handleEditFormOpen={handleEditFormOpen}/>
+                        <Row key={index} row={row} index={index} isSelected={isSelected} handleSelectClick={handleSelectClick} handleEditFormOpen={handleEditFormOpen} handleCustormEmailFormOpen={handleCustormEmailFormOpen}/>
                     ))}
                 </TableBody>
             </Table>

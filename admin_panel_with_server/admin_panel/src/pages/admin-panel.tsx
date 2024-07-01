@@ -5,6 +5,7 @@ import DashBox from '../components/dashPanelBox';
 import AddStudentForm from '../components/addStudentForm';
 import EditStudentForm from '../components/editStudentForm';
 import Notifications from '../components/notifications';
+import CustomEmail from '../components/customeEmail';
 
 interface Student {
     id: number;
@@ -58,6 +59,7 @@ const AdminPanel = () => {
     const [Notification, setNotification] = useState<Notification[]>([]);
     const [addFormOpen, isAddFormOpen] = useState<boolean>(false);
     const [editFormOpen, isEditFormOpen] = useState<EditStudent | null>(null);
+    const [customEmailOpen, isCustomEmailOpen] = useState<readonly number[] | null>(null);
     const [students, getStudents] = useState<Student[] | null>(null);
 
     const collectNotifications = async (notification: Message) => {
@@ -104,6 +106,14 @@ const AdminPanel = () => {
     const handleEditFormClose = () =>{
         isEditFormOpen(null);
     }
+
+    const handleCustomeEmailFormOpen = (id: readonly number[]) =>{
+        isCustomEmailOpen(id);
+    }
+
+    const handleCustomeEmailFormClose = () =>{
+        isCustomEmailOpen(null);
+    }
     
     const handleNotificationClose = (NotificationID: string) =>{
         if(!NotificationOn) return;
@@ -118,19 +128,19 @@ const AdminPanel = () => {
     return(
         <div className="admin-panel">
             <div id='notification-container' className='notification-container'>
+                {NotificationOn && Notification.map((notification, index) => <Notifications id={`${index}`} key={index} notification={notification} handleNotificationClose={handleNotificationClose}/>)}
                 {NotificationOn && <button type="button" className="btn btn-light" onClick={handleAllNotificationClose}>Clear All</button>}
-                {NotificationOn && Notification.map((notification, index) => <Notifications id={`notification-${index}`} key={index} notification={notification} handleNotificationClose={handleNotificationClose}/>)}
             </div>
-            <h3>Admin Panel</h3>
+            <h4>Admin Panel</h4>
             <div className='dash-panel'>
-                <DashBox title='Students' numbers={students? students.length: 0} backgroundColor='black'/>
-                <DashBox title='Students' numbers={100} backgroundColor='black'/>
-                <DashBox title='Students' numbers={100} backgroundColor='black'/>
-                <DashBox title='Students' numbers={100} backgroundColor='black'/>
+                <DashBox title='Students' numbers={students? students.length: 0} backgroundColor='#f8b34a'/>
+                <DashBox title='Eligible Students' numbers={students? students.filter((n) => n.number_of_referrals == 2).length: 0} allStudents={students? students.length: 0} backgroundColor='#58ce5c'/>
+                <DashBox title='Ineligible Students' numbers={students? students.filter((n) => n.number_of_referrals < 2).length: 0} allStudents={students? students.length: 0} backgroundColor='#fd6770'/>
             </div>
-            {students? <DataTable rows={students} handleAddFormOpen={handleAddFormOpen} handleEditFormOpen={handleEditFormOpen} collectNotifications={collectNotifications}/> : undefined}
-            {addFormOpen && <AddStudentForm handleFormClose={handleAddFormClose} collectNotification={collectNotifications}/>}
-            {editFormOpen && <EditStudentForm handleFormClose={handleEditFormClose} collectNotification={collectNotifications} editStudent={editFormOpen}/>}
+            {students? <DataTable rows={students} handleAddFormOpen={handleAddFormOpen} handleEditFormOpen={handleEditFormOpen} handleCustormEmailFormOpen={handleCustomeEmailFormOpen} collectNotifications={collectNotifications}/> : undefined}
+            {addFormOpen && <AddStudentForm handleFormClose={handleAddFormClose} collectNotifications={collectNotifications}/>}
+            {editFormOpen && <EditStudentForm handleFormClose={handleEditFormClose} collectNotifications={collectNotifications} editStudent={editFormOpen}/>}
+            {customEmailOpen && <CustomEmail handleFormClose={handleCustomeEmailFormClose} id={customEmailOpen} collectNotifications={collectNotifications}/>}
         </div>
     )
 }

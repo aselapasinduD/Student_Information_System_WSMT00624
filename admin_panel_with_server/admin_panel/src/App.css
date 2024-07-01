@@ -23,16 +23,25 @@
 .dash-panel{
   display: grid;
   grid-template-columns: repeat(auto-fill, 100px);
-  grid-template-rows: repeat(1, 120px);
+  grid-template-rows: repeat(1, 110px);
   gap: 40px;
 }
 .dash-box{
+  display: grid;
+  align-items: center;
   color: white;
   border-radius: 20px;
   padding: 10px;
   grid-column: span 2;
+  text-align: center;
 }
-
+.dash-box > div{
+  display: flex;
+  justify-content: space-around;
+}
+.dash-box > div *{
+  margin: 0 !important;
+}
 .form{
   display: grid;
   position: fixed;
@@ -53,8 +62,16 @@
   border-radius: 30px;
   background-color: white;
 }
+.mailform-container{
+  width: 50vw;
+  min-width: 400px;
+}
 .form-container .heading{
   margin-bottom: 30px;
+}
+.textarea-header{
+  display: flex;
+  justify-content: space-between;
 }
 
 .notification-container{
@@ -78,6 +95,6 @@
 }
 .notification .header {
   display: flex;
-  gap: 30px;
+  justify-content: space-between;
   margin-bottom: 10px;
 }

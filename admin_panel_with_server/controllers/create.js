@@ -19,7 +19,7 @@ class Create{
         const formattedDatetime = datetime.toISOString().replace(/T/, ' ').substr(0, 19);
         const referralWA = parseInt(referralwa);
 
-        console.log(`fullname: ${fullname}\nemail: ${email}\nwanumber: ${wanumber}\nreferralwa: ${referralwa}\ndate: ${formattedDatetime}`);
+        // console.log(`fullname: ${fullname}\nemail: ${email}\nwanumber: ${wanumber}\nreferralwa: ${referralwa}\ndate: ${formattedDatetime}`);
         
         // Add Students to the Database
         const addStudentSQL = `INSERT INTO student(full_name, email, wa_number, register_at) 
