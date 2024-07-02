@@ -160,7 +160,7 @@ const FilterMenus = (props: filterMenus) => {
         ]
       );
     }
-  },[valueID, valueNumberOfReferrals, valueRegisterAt, isBelowChecked]);
+  },[valueID, valueNumberOfReferrals, valueRegisterAt, isBelowChecked, open, setfilteroptions]);
 
   return (
       <Menu
@@ -467,7 +467,7 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {row.referral_student.length != 0? row.referral_student.map((student, index) => (
+                  {row.referral_student.length !== 0? row.referral_student.map((student, index) => (
                     <TableRow key={index}>
                       <TableCell >{student.id}</TableCell>
                       <TableCell >{student.full_name}</TableCell>
@@ -592,11 +592,11 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
       handleRequestSort(event, property);
     };
 
-    const filteredRows = useMemo(() => filter(rows, filterOptions),[order, orderBy, page, rowsPerPage, filterOptions]);
+    const filteredRows = useMemo(() => filter(rows, filterOptions),[filterOptions, rows]);
 
     const visibleRows = useMemo(
       () => stableSort(filteredRows,getComparator(order, orderBy)).slice(page * rowsPerPage,page * rowsPerPage + rowsPerPage),
-      [order, orderBy, page, rowsPerPage, filterOptions]);
+      [order, orderBy, page, rowsPerPage, filteredRows]);
 
     const isSelected = (id: number) => selected.indexOf(id) !== -1;
 
@@ -758,7 +758,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
             />
         </TableContainer>
         </Paper>
-        {Boolean(selected.length != 0) && <AlertDialog title="Are you want to delete this student?" description="If you want to delete the students click Yes. if you don't click No." isDialogOpen={isDialogOpen} getIsDialogOpen={getIsDialogOpen} handleFormSubmitConform={handleFormSubmitConform} />}
+        {Boolean(selected.length !== 0) && <AlertDialog title="Are you want to delete this student?" description="If you want to delete the students click Yes. if you don't click No." isDialogOpen={isDialogOpen} getIsDialogOpen={getIsDialogOpen} handleFormSubmitConform={handleFormSubmitConform} />}
       </Fragment>
     );
 }

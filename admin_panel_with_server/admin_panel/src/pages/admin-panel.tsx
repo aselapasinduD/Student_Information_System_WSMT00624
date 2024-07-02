@@ -56,7 +56,6 @@ interface EditStudent{
   }
 
 const AdminPanel = () => {
-    const [isLoading, getIsLoading] = useState<boolean>(false);
     const [NotificationOn, isNotificationOn] = useState<boolean>(false);
     const [Notification, setNotification] = useState<Notification[]>([]);
     const [addFormOpen, isAddFormOpen] = useState<boolean>(false);
@@ -72,7 +71,6 @@ const AdminPanel = () => {
 
     useLayoutEffect(()=>{
         const fetchStudent = async () => {
-            getIsLoading(true);
             try{
                 const response = await fetch("http://localhost:3000/admin-panel/students",{
                     method: 'GET'
@@ -87,7 +85,6 @@ const AdminPanel = () => {
                 console.log("Error Fetching Students From Server: ", error);
                 collectNotifications({message: "Error Fetching Students From Server.", from: "Main Server", error: true});
             }
-            getIsLoading(false);
         }
         fetchStudent();
     },[addFormOpen, editFormOpen]);
@@ -120,7 +117,7 @@ const AdminPanel = () => {
     const handleNotificationClose = (NotificationID: string) =>{
         if(!NotificationOn) return;
         setNotification((prevNotifications) => prevNotifications.filter((n) => n.id !== NotificationID));
-        if(Notification.length - 1 == 0) isNotificationOn(false);
+        if(Notification.length - 1 === 0) isNotificationOn(false);
     }
     const handleAllNotificationClose = () => {
         setNotification([]);

@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React from "react";
 import Alert from '@mui/material/Alert';
 
 interface Notification{

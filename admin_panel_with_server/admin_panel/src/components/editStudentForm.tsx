@@ -59,7 +59,7 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
         event.preventDefault();
         getIsDialogOpen(true);
 
-        let formData = new URLSearchParams;
+        let formData = new URLSearchParams();
         const inputs = event.currentTarget.getElementsByClassName("form-control");
         formData.append("id", `${id}`);
         for(let i=0; i<inputs.length; i++){

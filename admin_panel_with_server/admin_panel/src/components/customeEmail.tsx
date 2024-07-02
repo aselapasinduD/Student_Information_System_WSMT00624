@@ -55,7 +55,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
         event.preventDefault();
         getIsDialogOpen(true);
 
-        let formData = new URLSearchParams;
+        let formData = new URLSearchParams();
         const inputs = event.currentTarget.getElementsByClassName("form-control");
 
         for(let i=0; i<inputs.length; i++){
