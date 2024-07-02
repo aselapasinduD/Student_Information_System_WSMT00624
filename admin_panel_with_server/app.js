@@ -11,7 +11,6 @@ const indexRouter = require('./routes/index');
 const adminPanelRouter = require('./routes/adminPanel');
 const adminLoginRouter = require('./routes/adminLogin');
 const sendMailRouter = require('./routes/sendMail');
-const sendWhastappMsgRouter = require('./routes/sendWhatsappMsg');
 
 const app = express();
 
@@ -34,14 +33,13 @@ app.use(express.static(path.join(__dirname, 'admin_panel/build/')));
 
 app.use('/', indexRouter);
 // Admin Panel
-app.use('/admin-panel', adminPanelRouter);
+app.use('/admin-panel', Auth, adminPanelRouter);
 
 // Supre Admin Login
-app.use('/admin-login', adminLoginRouter);
+app.use('/admin-login', AuthLogin, adminLoginRouter);
 
 // Send mail messages
 app.use('/mail', sendMailRouter);
-app.use('/whatsapp_msg', sendWhastappMsgRouter);
 
 // All Other Request will return to Static Website
 app.get('*', function(req, res, next) {

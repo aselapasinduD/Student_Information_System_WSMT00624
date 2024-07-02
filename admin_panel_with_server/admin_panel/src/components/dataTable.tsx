@@ -138,6 +138,9 @@ const FilterMenus = (props: filterMenus) => {
 
   const handleClearFilters = () => {
     setfilteroptions(initialFilterOptions);
+    getValueID("");
+    getValueNumberOfRegerrals("");
+    getValueRegisterAt("");
   }
 
   useEffect(()=>{

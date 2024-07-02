@@ -11,7 +11,7 @@ class Update{
         const datetime = new Date();
         const formattedDatetime = datetime.toISOString().replace(/T/, ' ').substr(0, 19);
 
-        console.log(`id: ${id}\nfullname: ${fullname}\nemail: ${email}\nwanumber: ${wanumber}\ndate: ${formattedDatetime}`);
+        // console.log(`id: ${id}\nfullname: ${fullname}\nemail: ${email}\nwanumber: ${wanumber}\ndate: ${formattedDatetime}`);
 
         // Update Students to the Database
         const updateStudentSQL = `UPDATE student SET full_name='${fullname}', email='${email}', wa_number=${parseInt(wanumber)} WHERE id=${id}`;

@@ -1,7 +1,6 @@
 const db = require('./admin/database');
 
 const SendMail = require("./mail");
-const WhatsappMsg = require("./whatsapp");
 
 const Mail = new SendMail();
 
