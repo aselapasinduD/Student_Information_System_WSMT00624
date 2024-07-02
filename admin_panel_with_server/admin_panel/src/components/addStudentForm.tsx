@@ -19,7 +19,7 @@ const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotifications}
     const [formData, getFormData] = useState<URLSearchParams | null>(null);
 
     const submitForm = async(formData: URLSearchParams) => {
-        const response = await fetch("http://localhost:3000/admin-panel/student", {
+        const response = await fetch("/admin-panel/student", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"

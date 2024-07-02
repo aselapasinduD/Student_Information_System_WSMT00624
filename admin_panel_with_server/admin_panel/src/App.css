@@ -101,3 +101,8 @@
   justify-content: space-between;
   margin-bottom: 10px;
 }
+
+._404page{
+  text-align: center;
+  margin-top: calc(50vh - (2.5rem / 2));
+}

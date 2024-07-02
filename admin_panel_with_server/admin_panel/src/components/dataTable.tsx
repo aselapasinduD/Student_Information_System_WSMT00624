@@ -637,7 +637,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
 
     const DeleteStudents = async() => {
       try{
-        const response = await fetch("http://localhost:3000/admin-panel/student",
+        const response = await fetch("/admin-panel/student",
         {
           method: "DELETE",
           headers: {

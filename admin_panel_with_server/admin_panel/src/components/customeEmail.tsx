@@ -22,6 +22,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
     const [isHtmlContent, getIsHtmlContent] = useState<string>("html");
     const [isDialogOpen, getIsDialogOpen] = useState<boolean>(false);
     const [formData, getFormData] = useState<URLSearchParams | null>(null);
+    const [progress, getProgress] = useState<number>(0);
 
     const submitForm = async(formData: URLSearchParams) => {
         let numberOfIds = id.length;
@@ -29,7 +30,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
             try{
                 numberOfIds--;
                 formData.set("id", `${id[numberOfIds]}`);
-                const response = await fetch("http://localhost:3000/mail", {
+                const response = await fetch("/mail", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
@@ -48,12 +49,14 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
                 console.log("Error fetching email from server: ", error);
                 collectNotifications({message: "Error fetching emails to the server.", from: "Front End", error: true});
             }
+            getProgress(Math.round(100 - (numberOfIds/id.length)*100));
         } while(numberOfIds > 0)
     }
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         getIsDialogOpen(true);
+        getProgress(0);
 
         let formData = new URLSearchParams();
         const inputs = event.currentTarget.getElementsByClassName("form-control");
@@ -82,7 +85,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
                     <div className="form-container mailform-container">
                         <h4 className="heading">Send Mail</h4>
                         <h6>Number of receivers: {id.length}</h6>
-                        <form onSubmit={handleSubmit}>
+                        <form onSubmit={handleSubmit} style={{marginBottom: 10}}>
                             <div className="mb-4">
                                 <label htmlFor="validationTextarea" className="form-label">Subject</label>
                                 <input id="subject" type="text" className="form-control" placeholder="Subject" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" name="subject" required/>
@@ -104,6 +107,9 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
                             </div>
                             <button type="submit" className="btn btn-danger">Submit</button>
                         </form>
+                        {Boolean(id.length > 1) && <div className="progress" role="progressbar" aria-label="Example with label" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+                            <div className="progress-bar" style={{width: `${progress}%`}}>{progress}%</div>
+                        </div>}
                     </div>
                 </div>
             </div>

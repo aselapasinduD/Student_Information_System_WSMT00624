@@ -72,7 +72,7 @@ const AdminPanel = () => {
     useLayoutEffect(()=>{
         const fetchStudent = async () => {
             try{
-                const response = await fetch("http://localhost:3000/admin-panel/students",{
+                const response = await fetch("/admin-panel/students",{
                     method: 'GET'
                 });
                 if(!response){
@@ -130,7 +130,7 @@ const AdminPanel = () => {
                 {NotificationOn && Notification.map((notification, index) => <Notifications id={`${index}`} key={index} notification={notification} handleNotificationClose={handleNotificationClose}/>)}
                 {NotificationOn && <button type="button" className="btn btn-secondary" onClick={handleAllNotificationClose}>Clear All</button>}
             </div>
-            <h4>Admin Panel</h4>
+            <h4>Admin Panel 1.0v</h4>
             <div className='dash-panel'>
                 <DashBox title='Students' numbers={students? students.length: 0} backgroundColor='#f8b34a'/>
                 <DashBox title='Eligible Students' numbers={students? students.filter((n) => n.number_of_referrals >= 2).length: 0} allStudents={students? students.length: 0} backgroundColor='#58ce5c'/>
