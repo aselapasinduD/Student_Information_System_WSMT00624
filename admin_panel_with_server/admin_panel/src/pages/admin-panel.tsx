@@ -1,4 +1,4 @@
-import React, {useState, useLayoutEffect, Fragment, useRef, HTMLAttributeReferrerPolicy, useEffect} from 'react';
+import React, {useState, useLayoutEffect} from 'react';
 
 import DataTable from '../components/dataTable';
 import DashBox from '../components/dashPanelBox';
@@ -11,6 +11,7 @@ interface Student {
     id: number;
     full_name: string;
     email: string;
+    number_of_mails: number;
     wa_number: number | string;
     register_at: string;
     created_at: string;
@@ -28,6 +29,7 @@ const Loading = [{
     id: 0,
     full_name: "Loading...",
     email: "Loading...",
+    number_of_mails: 0,
     wa_number: "Loading...",
     register_at: "Loading...",
     created_at: "Loading...",
@@ -129,12 +131,12 @@ const AdminPanel = () => {
         <div className="admin-panel">
             <div id='notification-container' className='notification-container'>
                 {NotificationOn && Notification.map((notification, index) => <Notifications id={`${index}`} key={index} notification={notification} handleNotificationClose={handleNotificationClose}/>)}
-                {NotificationOn && <button type="button" className="btn btn-light" onClick={handleAllNotificationClose}>Clear All</button>}
+                {NotificationOn && <button type="button" className="btn btn-secondary" onClick={handleAllNotificationClose}>Clear All</button>}
             </div>
             <h4>Admin Panel</h4>
             <div className='dash-panel'>
                 <DashBox title='Students' numbers={students? students.length: 0} backgroundColor='#f8b34a'/>
-                <DashBox title='Eligible Students' numbers={students? students.filter((n) => n.number_of_referrals == 2).length: 0} allStudents={students? students.length: 0} backgroundColor='#58ce5c'/>
+                <DashBox title='Eligible Students' numbers={students? students.filter((n) => n.number_of_referrals >= 2).length: 0} allStudents={students? students.length: 0} backgroundColor='#58ce5c'/>
                 <DashBox title='Ineligible Students' numbers={students? students.filter((n) => n.number_of_referrals < 2).length: 0} allStudents={students? students.length: 0} backgroundColor='#fd6770'/>
             </div>
             {students? <DataTable rows={students} handleAddFormOpen={handleAddFormOpen} handleEditFormOpen={handleEditFormOpen} handleCustormEmailFormOpen={handleCustomeEmailFormOpen} collectNotifications={collectNotifications}/> : undefined}

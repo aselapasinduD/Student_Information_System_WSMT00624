@@ -13,9 +13,10 @@ router.post('/', async (req, res)=>{
 });
 
 router.post('/whenregister', async (req, res)=>{
-    const {fullname, email} = req.body;
+    const {id} = req.body;
     console.log(req.body);
-    const result = await Mail.sendMail({to: email, subject: "NodeMailer Testing", text: "Mail Content.", html: `<h1>Hello ${fullname}!</h1>`});
+    const emailcontent = "<h1>Hello {{full_name}}</h1>";
+    const result = await Mail.sendMail({to: id, subject: "NodeMailer Testing", emailcontent: emailcontent, ishtml: "html"});
     res.status(200).json({isMailSend: result});
 });
 

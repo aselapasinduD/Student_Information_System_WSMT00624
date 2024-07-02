@@ -38,6 +38,13 @@ class Read{
             console.log("Error while getting student from database.\n", error);
         }
     }
+
+    async IncrementNumnberOfMails(id) {
+        let result;
+        const query = `UPDATE student SET number_of_mails = number_of_mails + 1 WHERE id = ${id}`;
+        [result] = await this.#db.promise().query(query);
+        console.log(result);
+    }
 }
 
 module.exports= Read;

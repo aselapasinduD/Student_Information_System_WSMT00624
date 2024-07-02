@@ -14,6 +14,7 @@ const db_connection = () => {
             id INT NOT NULL AUTO_INCREMENT,
             full_name VARCHAR(50) NOT NULL,
             email VARCHAR(320) NOT NULL,
+            number_of_mails INT NOT NULL DEFAULT 0,
             wa_number BIGINT(12) UNIQUE NOT NULL,
             register_at DATETIME,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -1,4 +1,4 @@
-import React, {useState, Fragment} from 'react';
+import React, {useState, Fragment, useEffect, useMemo} from 'react';
 import Box from '@mui/material/Box';
 import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
@@ -15,7 +15,11 @@ import Tooltip from '@mui/material/Tooltip';
 import Toolbar from '@mui/material/Toolbar';
 import Checkbox from '@mui/material/Checkbox';
 import TableSortLabel from '@mui/material/TableSortLabel';
-import { visuallyHidden } from '@mui/utils';
+import visuallyHidden from '@mui/utils/visuallyHidden';
+import TextField from '@mui/material/TextField';
+import Menu, {MenuProps} from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 // MUI Icons
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -29,11 +33,15 @@ import LastPageIcon from '@mui/icons-material/LastPage';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import EditIcon from '@mui/icons-material/Edit';
 import SendIcon from '@mui/icons-material/Send';
+import EmailIcon from '@mui/icons-material/Email';
+
+import AlertDialog from "./alertDialog";
 
 interface Student {
   id: number;
   full_name: string;
   email: string;
+  number_of_mails: number;
   wa_number: number | string;
   register_at: string;
   created_at: string;
@@ -59,10 +67,7 @@ interface TablePaginationActionsProps {
   count: number;
   page: number;
   rowsPerPage: number;
-  onPageChange: (
-    event: React.MouseEvent<HTMLButtonElement>,
-    newPage: number,
-  ) => void;
+  onPageChange: (event: React.MouseEvent<HTMLButtonElement>, newPage: number) => void;
 }
 
 function getComparator<Key extends keyof any>(order: Order, orderBy: Key):(a: { [key in Key]: any }, b: { [key in Key]: any }) => number {
@@ -79,6 +84,124 @@ function stableSort<T>(array: readonly Student[], comparator: (a: T, b: T) => nu
     return a[1] - b[1];
   });
   return stabilizedThis.map((el) => el[0]);
+}
+
+interface FilterOptions {
+  id: keyof Student;
+  value: string | null;
+  options?: {below: boolean};
+}
+
+const initialFilterOptions: FilterOptions[] = [
+  {
+    id: "number_of_referrals",
+    value: null
+  },
+  {
+    id: "full_name",
+    value: null
+  },
+  {
+    id: "register_at",
+    value: null
+  }
+]
+
+function filter(rows: readonly Student[], options: FilterOptions[]) {
+  let filterdRows = rows;
+  filterdRows = filterdRows.filter((record) => record.full_name.toLowerCase().includes((options[1].value? options[1].value: "").toLowerCase()));
+  if(options[0].value) filterdRows = filterdRows.filter((record) => options[0].options?.below === true?  record.number_of_referrals <= parseInt((options[0].value? options[0].value: "")): record.number_of_referrals === parseInt((options[0].value? options[0].value: "")));
+  filterdRows = filterdRows.filter((record) => record.register_at.toLowerCase().includes((options[2].value? options[2].value: "").toLowerCase()));
+  return filterdRows;
+}
+
+interface filterMenus extends MenuProps {
+  setfilteroptions: (value: FilterOptions[]) => void;
+}
+
+const FilterMenus = (props: filterMenus) => {
+  const {setfilteroptions, open} = props;
+  const [valueID, getValueID] = useState<string>("");
+  const [valueNumberOfReferrals, getValueNumberOfRegerrals] = useState<string>("");
+  const [valueRegisterAt, getValueRegisterAt] = useState<string>("");
+  const [isBelowChecked, setIsBelowChecked] = useState<boolean>(false);
+
+  const handleIdChange = (value: string) => {
+    getValueID(value);
+  }
+  const handleNumberOfReferralsChange = (value: string) => {
+    getValueNumberOfRegerrals(value);
+  }
+  const handleRegisterAtChange = (value: string) => {
+    getValueRegisterAt(value);
+  }
+
+  const handleClearFilters = () => {
+    setfilteroptions(initialFilterOptions);
+  }
+
+  useEffect(()=>{
+    if(open){
+      setfilteroptions(
+        [
+          {
+            id: "number_of_referrals",
+            value: valueNumberOfReferrals === ""? null : valueNumberOfReferrals,
+            options: {below: isBelowChecked}
+          },
+          {
+            id: "id",
+            value: valueID === ""? null: valueID
+          },
+          {
+            id: "register_at",
+            value: valueRegisterAt === ""? null : valueRegisterAt
+          }
+        ]
+      );
+    }
+  },[valueID, valueNumberOfReferrals, valueRegisterAt, isBelowChecked]);
+
+  return (
+      <Menu
+        id="demo-customized-menu"
+        MenuListProps={{
+          'aria-labelledby': 'demo-customized-button',
+        }}
+        elevation={0}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        sx={{
+          '& .MuiPaper-root': {
+            borderRadius: 3,
+            marginTop: "5px",
+            minWidth: 180,
+            boxShadow:'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px'
+            }
+        }}
+        {...props}
+      >
+        <MenuItem onKeyDown={(e) => e.stopPropagation()}>
+          <TextField name="full_name"  hiddenLabel label="Full Name" inputProps={{pattern: "[0-9]{11}", value: valueID}} size='small' margin='none' onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleIdChange(e.target.value)}/>
+        </MenuItem>
+        <MenuItem onKeyDown={(e) => e.stopPropagation()}>
+          <TextField name='number_of_referrals' placeholder='0' inputProps={{pattern: "[0-9]{11}", type: "number", value: valueNumberOfReferrals}} hiddenLabel label="Referrals" size='small' margin='none' onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleNumberOfReferralsChange(e.target.value)} sx={{ mr: 1, width: '15ch' }}/>
+          <FormControlLabel control={<Checkbox onChange={(e)=>setIsBelowChecked(e.target.checked)} />} label="Below" />
+        </MenuItem>
+        <MenuItem onKeyDown={(e) => e.stopPropagation()}>
+          <TextField name='register_at' hiddenLabel label="Register At" placeholder='2024-06-28 00:00' size='small' margin='none' inputProps={{pattern: "[0-9]{11}", value: valueRegisterAt}} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleRegisterAtChange(e.target.value)}/>
+        </MenuItem>
+        <MenuItem onKeyDown={(e) => e.stopPropagation()} onClick={handleClearFilters} style={{justifyContent: "center"}}>
+          <Typography align='center'>Clear Filters</Typography>
+        </MenuItem>
+      </Menu>
+  );
 }
 
 function TablePaginationActions(props: TablePaginationActionsProps) {
@@ -141,10 +264,22 @@ interface EnhancedTableToolbarProps {
   handleAddFormOpen: () => void;
   handleDelete: () => void;
   handleCustomeEmailForAll: () => void;
+  setFilterOptions: (value: FilterOptions[]) => void;
 }
 
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-  const { numSelected, handleAddFormOpen, handleDelete, handleCustomeEmailForAll } = props;
+  const { numSelected, handleAddFormOpen, handleDelete, handleCustomeEmailForAll, setFilterOptions } = props;
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const open = Boolean(anchorEl);
+
+  const handleFilterButtonClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   return (
     <Toolbar
@@ -182,10 +317,15 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
               <DeleteIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Send">
+          <Tooltip title="Send Mail">
             <IconButton
               onClick={handleCustomeEmailForAll}
             >
+              <EmailIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Send SMS">
+            <IconButton>
               <SendIcon />
             </IconButton>
           </Tooltip>
@@ -199,11 +339,16 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
               <PersonAddAlt1Icon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Filter list">
-            <IconButton>
-              <FilterListIcon />
-            </IconButton>
-          </Tooltip>
+          <div>
+            <Tooltip title="Filter list">
+              <IconButton
+                onClick={handleFilterButtonClick}
+              >
+                <FilterListIcon />
+              </IconButton>
+            </Tooltip>
+            <FilterMenus setfilteroptions={setFilterOptions} open={open} anchorEl={anchorEl} onClose={handleClose}/>
+          </div>
         </Fragment>
       )}
     </Toolbar>
@@ -269,21 +414,29 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
         </TableCell>
         <TableCell >{row.full_name}</TableCell>
         <TableCell >{row.email}</TableCell>
+        <TableCell align='center'>{row.number_of_mails}</TableCell>
         <TableCell >{row.wa_number}</TableCell>
         {row.number_of_referrals >= 2?
             <TableCell align='center' sx={{color: "green"}}>{row.number_of_referrals}</TableCell> :
             <TableCell align='center' sx={{color: "red"}}>{row.number_of_referrals}</TableCell>
         }
         <TableCell >{formatDateTime(row.register_at)}</TableCell>
-        <TableCell >{formatDateTime(row.created_at)}</TableCell>
+        <TableCell >{formatDateTime(row.updated_at)}</TableCell>
         <TableCell >
-          <Tooltip title="Send">
+          <div style={{display: 'flex'}}>
+          <Tooltip title="Send Mail">
             <IconButton
               onClick={() => handleCustormEmailFormOpen([row.id])}
             >
+              <EmailIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Send SMS">
+            <IconButton>
               <SendIcon />
             </IconButton>
           </Tooltip>
+          </div>
         </TableCell>
         <TableCell >
           <Tooltip title="Edit Details">
@@ -355,7 +508,7 @@ interface ColumnNames {
   id: keyof Student;
   label: string;
   numeric: boolean;
-  disablePadding: boolean;
+  padding: "checkbox" | "none" | "normal" | undefined;
   aligment: string;
 }
 
@@ -364,61 +517,70 @@ const columnNames: readonly ColumnNames[] = [
     id: "id",
     label: "ID",
     numeric: true,
-    disablePadding: false,
+    padding: "checkbox",
     aligment: "left"
   },
   {
     id: "full_name",
     label: "Full Name",
     numeric: true,
-    disablePadding: false,
+    padding: 'normal',
     aligment: "left"
   },
   {
     id: "email",
     label: "Email",
     numeric: true,
-    disablePadding: false,
+    padding: 'normal',
+    aligment: "left"
+  },
+  {
+    id: "number_of_mails",
+    label: "Number of Mails",
+    numeric: true,
+    padding: "checkbox",
     aligment: "left"
   },
   {
     id: "wa_number",
     label: "Whatsapp Number",
     numeric: true,
-    disablePadding: false,
+    padding: 'normal',
     aligment: "left"
   },
   {
     id: "number_of_referrals",
     label: "Number Of Referrals",
     numeric: true,
-    disablePadding: false,
+    padding: "checkbox",
     aligment: "left"
   },
   {
     id: "register_at",
     label: "Register Date",
     numeric: true,
-    disablePadding: false,
+    padding: 'normal',
     aligment: "left"
   },
   {
-    id: "created_at",
-    label: "Created Date",
+    id: "updated_at",
+    label: "Updated Date",
     numeric: true,
-    disablePadding: false,
+    padding: 'normal',
     aligment: "left"
   }
 ]
 
 const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFormOpen, handleCustormEmailFormOpen, collectNotifications}) => {
-    const [order, setOrder] = React.useState<Order>('desc');
-    const [orderBy, setOrderBy] = React.useState<keyof Student | Unassigned>('id');
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+    const [order, setOrder] = useState<Order>('desc');
+    const [orderBy, setOrderBy] = useState<keyof Student | Unassigned>('id');
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
     const [selected, setSelected] = useState<readonly number[]>([]);
+    const [filterOptions, setFilterOptions] = useState<FilterOptions[]>(initialFilterOptions);
+    const [rowCount, getRowCount] = useState<number>(rows.length);
+    const [isDialogOpen, getIsDialogOpen] = useState<boolean>(false);
     const numSelected = selected.length;
-    const rowCount = rows.length;
 
     const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Student) => {
       const isAsc = orderBy === property && order === 'asc';
@@ -430,15 +592,24 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
       handleRequestSort(event, property);
     };
 
-    const visibleRows = React.useMemo(
-      () => stableSort(rows,getComparator(order, orderBy)).slice(page * rowsPerPage,page * rowsPerPage + rowsPerPage),
-      [order, orderBy, page, rowsPerPage]);
+    const filteredRows = useMemo(() => filter(rows, filterOptions),[order, orderBy, page, rowsPerPage, filterOptions]);
+
+    const visibleRows = useMemo(
+      () => stableSort(filteredRows,getComparator(order, orderBy)).slice(page * rowsPerPage,page * rowsPerPage + rowsPerPage),
+      [order, orderBy, page, rowsPerPage, filterOptions]);
 
     const isSelected = (id: number) => selected.indexOf(id) !== -1;
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (event.target.checked) {
+        if(filterOptions !== initialFilterOptions){
+          const newSelected = filteredRows.map((n) => n.id);
+          getRowCount(filteredRows.length);
+          setSelected(newSelected);
+          return;
+        }
         const newSelected = rows.map((n) => n.id);
+        getRowCount(rows.length);
         setSelected(newSelected);
         return;
       }
@@ -464,8 +635,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
       setSelected(newSelected);
     };
 
-    const handleDelete = async () => {
-      console.log(selected);
+    const DeleteStudents = async() => {
       try{
         const response = await fetch("http://localhost:3000/admin-panel/student",
         {
@@ -489,6 +659,19 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
       }
     }
 
+    const handleDelete = async () => {
+      console.log(selected);
+      getIsDialogOpen(true);
+    }
+
+    const handleFormSubmitConform = async (isConfirm: boolean) => {
+      if(!isConfirm) return;
+      if(!isDialogOpen) return;
+      getIsDialogOpen(false);
+      await DeleteStudents();
+  }
+
+
     const handleChangePage = (event: unknown, newPage: number) => {
       setPage(newPage);
     };
@@ -501,7 +684,6 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
     const handleCustomeEmailForAll = () => {
       handleCustormEmailFormOpen(selected);
     }
-
     return (
       <Fragment>
         <Paper sx={{marginTop: "20px"}}>
@@ -510,6 +692,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
           handleAddFormOpen={handleAddFormOpen}
           handleDelete={handleDelete}
           handleCustomeEmailForAll={handleCustomeEmailForAll}
+          setFilterOptions={setFilterOptions}
         />
         <TableContainer>
             <Table aria-label="collapsible table" size={"small"}>
@@ -527,12 +710,13 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
                       />
                     </TableCell>
                     <TableCell />
-                    {columnNames.map((column, index) => {
+                    {columnNames.map((column) => {
                       return(
                         <TableCell
                           key={column.id}
-                          align={column.id==="number_of_referrals"? "center": "left"}
+                          align={column.id==="number_of_referrals" || column.id==="number_of_mails"? "center": "left"}
                           sortDirection={orderBy === column.id ? order : false}
+                          padding={column.padding}
                         >
                           <TableSortLabel
                             active={orderBy === column.id}
@@ -549,7 +733,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
                         </TableCell>
                       );
                     })}
-                    <TableCell padding='checkbox'>
+                    <TableCell align="center" padding='checkbox'>
                       Send
                     </TableCell>
                     <TableCell padding='checkbox' />
@@ -574,6 +758,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
             />
         </TableContainer>
         </Paper>
+        {Boolean(selected.length != 0) && <AlertDialog title="Are you want to delete this student?" description="If you want to delete the students click Yes. if you don't click No." isDialogOpen={isDialogOpen} getIsDialogOpen={getIsDialogOpen} handleFormSubmitConform={handleFormSubmitConform} />}
       </Fragment>
     );
 }

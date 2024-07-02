@@ -35,6 +35,7 @@ router.get('/students', async (req, res) => {
 router.post('/student', async (req, res) => {
   const result = await create.addStudent(req.body);
   console.log(result);
+  if (result === 'ER_DUP_ENTRY') return res.status(200).json({message: "Phone Number Duplicate Error!", from: 'Main Server', error: true});
   res.status(200).json({message: result, from: 'Main Server'});
 });
 router.put('/student', async (req, res) => {

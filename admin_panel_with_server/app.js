@@ -45,7 +45,7 @@ app.use('/whatsapp_msg', sendWhastappMsgRouter);
 
 // All Other Request will return to Static Website
 app.get('*', function(req, res, next) {
-    res.sendFile(path.join(__dirname, 'admin_panel/build/index.html'));
+    res.status(404).sendFile(path.join(__dirname, 'admin_panel/build/index.html'));
   });
 
 module.exports = app;

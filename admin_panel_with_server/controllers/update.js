@@ -1,11 +1,5 @@
 const db = require('./admin/database');
 
-const SendMail = require("./mail");
-const WhatsappMsg = require("./whatsapp");
-
-const Mail = new SendMail();
-const whatsapp = new WhatsappMsg();
-
 class Update{
     #db;
     constructor(){
@@ -25,12 +19,6 @@ class Update{
         try {
             [result] = await this.#db.promise().query(updateStudentSQL);
             console.log('Update Student Is Success\n', result);
-
-            const sendMail = await Mail.sendMail({to: email, subject: "NodeMailer Testing", text: "Mail Content.", html: `<h1>Hello ${fullname}!</h1>`});
-            console.log("Send Mail:\n", sendMail);
-
-            const sendWhastappMsg = await whatsapp.send(wanumber, "hello_world");
-            console.log("Send Whatsapp Messages:\n", sendWhastappMsg);
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY'){
                 console.log("Phone Number Duplicate Error!: ", error.sqlMessage);

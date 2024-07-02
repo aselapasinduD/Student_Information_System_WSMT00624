@@ -17,9 +17,9 @@ interface props{
 const Notifications: React.FC<props> = ({id, notification, handleNotificationClose}) => {
 
     return(
-        <Alert id={notification.id} className="notification" severity={`${notification.error? "error": "success"}`}>
+        <Alert id={notification.id} className="notification" severity={`${notification.error? "error": "success"}`} sx={{'& .MuiAlert-message':{flex: 1}}}>
              <div className="header">
-                <h5>Notifications</h5>
+                <h5>{notification.from}</h5>
                 <button type="button" className="btn-close" onClick={() => handleNotificationClose(notification.id)} aria-label="Close"></button>
             </div>
             <p>{notification.message}</p>

@@ -55,6 +55,9 @@
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
 }
+.form > div{
+  margin: 12px;
+}
 
 .form-container{
   --btn-close-color: red;

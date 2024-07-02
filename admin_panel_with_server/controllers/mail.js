@@ -31,9 +31,7 @@ class SendMail {
         const [{full_name, email, wa_number}] = await read.getStudentById(to);
 
         if(ishtml === "html"){
-            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name);
-            newEmailContent = newEmailContent.replace(/{{email}}/g, email);
-            newEmailContent = newEmailContent.replace(/{{wa_number}}/g, wa_number);
+            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name).replace(/{{email}}/g, email).replace(/{{wa_number}}/g, wa_number);
             console.log(newEmailContent);
 
             mailOptions = {
@@ -44,9 +42,7 @@ class SendMail {
                 html: newEmailContent
             }
         } else {
-            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name);
-            newEmailContent = newEmailContent.replace(/{{email}}/g, email);
-            newEmailContent = newEmailContent.replace(/{{wa_number}}/g, wa_number);
+            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name).replace(/{{email}}/g, email).replace(/{{wa_number}}/g, wa_number);
             console.log(newEmailContent);
 
             mailOptions = {
@@ -61,12 +57,12 @@ class SendMail {
         try{
             const info = await this.#transporter.sendMail(mailOptions);
             console.log("Send mail:/n", info);
+            await read.IncrementNumnberOfMails(to);
             return `Sending mail to ${email} success.`;
         } catch (error){
             console.log("Error is Counting When try to send the mail: ", error);
             return `Error is Counting When try to send the mail: ${email}`;
         }
-        return "Working Send Mail."
     }
 }
 
