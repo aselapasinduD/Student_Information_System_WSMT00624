@@ -24,21 +24,25 @@ class create{
 
         try {
             [result] = await this.#db.promise().query(addStudentSQL);
-            console.log('Added Student Is Success\n', result.insertId);
-            const sendMail = await mainServer.sendMail(result.insertId);
+            console.log('Student Registration is success.\n', result.insertId);
+            const sendMail = await mainServer.sendMail(result.insertId, "Success_Registration");
             console.log("Send Mail:\n", sendMail);
-            // const sendWhastappMsg = await mainServer.sendWhastappMsg(WANumber);
-            // console.log("Send Whatsapp Messages:\n", sendWhastappMsg);
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY'){
                 console.log("Phone Number Duplicate Error!:", error.sqlMessage);
+                const sendMail = await mainServer.sendMail(Email, "ER_DUP_ENTRY");
+                console.log("Send Mail:\n", sendMail);
                 return "Phone Number Duplicate Error!";
             } else {
                 if(error.sqlMessage){
                     console.log("Query Exicution Error!: ", error.sqlMessage);
+                    const sendMail = await mainServer.sendMail(Email, "Unknown");
+                    console.log("Send Mail:\n", sendMail);
                     return "Query Exicution Error!";
                 } else {
                     console.log("Exicution Error!: ", error);
+                    const sendMail = await mainServer.sendMail(Email, "Unknown");
+                    console.log("Send Mail:\n", sendMail);
                     return "Exicution Error!";
                 }
                 

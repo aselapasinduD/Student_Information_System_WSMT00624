@@ -28,25 +28,30 @@ class SendMail {
         const {to, subject, emailcontent, ishtml} = options;
         let mailOptions;
 
-        const [{full_name, email, wa_number}] = await read.getStudentById(to);
+        let full_name, email, wa_number;
+        try{
+            [{full_name, email, wa_number}] = await read.getStudentById(to);
+        } catch {
+            full_name = "";
+            email = to;
+            wa_number = "";
+        }
 
         if(ishtml === "html"){
-            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name).replace(/{{email}}/g, email).replace(/{{wa_number}}/g, wa_number);
-            console.log(newEmailContent);
+            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name).replace(/{{email}}/g, email).replace(/{{wa_number}}/g, wa_number).replace(/{{whatsapp_group_link}}/g,process.env.WHATSAPP_GROUP_LINK);
 
             mailOptions = {
-                from: 'Project <project@innentasolutions.com>',
+                from: 'BinzO <project@innentasolutions.com>',
                 to: email,
                 cc: 'project@innentasolutions.com',
                 subject: subject,
                 html: newEmailContent
             }
         } else {
-            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name).replace(/{{email}}/g, email).replace(/{{wa_number}}/g, wa_number);
-            console.log(newEmailContent);
+            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name).replace(/{{email}}/g, email).replace(/{{wa_number}}/g, wa_number).replace(/{{whatsapp_group_link}}/g,process.env.WHATSAPP_GROUP_LINK);
 
             mailOptions = {
-                from: 'Project <project@innentasolutions.com>',
+                from: 'BinzO <project@innentasolutions.com>',
                 to: email,
                 cc: 'project@innentasolutions.com',
                 subject: subject,
@@ -57,7 +62,9 @@ class SendMail {
         try{
             const info = await this.#transporter.sendMail(mailOptions);
             console.log("Send mail:/n", info);
-            await read.IncrementNumnberOfMails(to);
+            if(typeof to == 'number'){
+                await read.IncrementNumnberOfMails(to);
+            }
             return `Sending mail to ${email} success.`;
         } catch (error){
             console.log("Error is Counting When try to send the mail: ", error);

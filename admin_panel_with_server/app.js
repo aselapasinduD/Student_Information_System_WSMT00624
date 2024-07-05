@@ -21,7 +21,7 @@ app.use(cors({
 app.use(session({
   secret: 'asela2001',
   cookie: {
-    maxAge: 1000 * 60 * 60 * 1,
+    maxAge: 1000 * 60 * 60 * 24,
     secure: false
   },
   saveUninitialized: false,

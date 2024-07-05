@@ -1,6 +1,10 @@
 const db = require('./admin/database');
+const fs = require("fs").promises;
+const path = require("path");
 
 const SendMail = require("./mail");
+
+const mailTemplatePath = "../resources/templates/emails";
 
 const Mail = new SendMail();
 
@@ -25,8 +29,14 @@ class Create{
             [result] = await this.#db.promise().query(addStudentSQL);
             console.log('Added Student Is Success\n', result);
 
-            const emailcontent = "<h1>Hello {{full_name}}</h1>";
-            const sendMail = await Mail.sendMail({to: result.insertId, subject: "NodeMailer Testing", emailcontent: emailcontent, ishtml: "html"});
+            const welcomeMail = path.join(__dirname, mailTemplatePath, "welcome_mail.html");
+            let emailcontent;
+            try{
+                emailcontent = await fs.readFile(welcomeMail, 'utf8');
+            } catch {
+                emailcontent = "<h3>Hi {{full_name}}</h3><br><p>You’re successfully registered for the BinzO Platform.</p><br><p>Join our WhatsApp group to get the Zoom link and updates:<br>WhatsApp Group Link: {{whatsapp_group_link}}</p><br><p>For more information WhatsApp Us -0784151403<br>See you soon!</p>";
+            }
+            const sendMail = await Mail.sendMail({to: result.insertId, subject: "Welcome to BinzO Free Course!", emailcontent: emailcontent, ishtml: "html"});
             console.log("Send Mail:\n", sendMail);
 
         } catch (error) {

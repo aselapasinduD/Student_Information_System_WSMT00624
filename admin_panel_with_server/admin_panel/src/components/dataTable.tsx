@@ -452,7 +452,7 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
         </TableCell>
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={9}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
               <Typography variant="h6" gutterBottom component="p">
@@ -481,7 +481,7 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
                     </TableRow>
                   )) : 
                   <TableRow>
-                      <TableCell colSpan={6} scope="row" align='center'>There is no any referral Students Yet.(refesh the page)</TableCell>
+                      <TableCell colSpan={10} scope="row" align='center'>There is no any referral Students Yet.(refesh the page)</TableCell>
                   </TableRow>}
                 </TableBody>
               </Table>
@@ -749,7 +749,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
                 </TableBody>
             </Table>
             <TablePagination
-                rowsPerPageOptions={[5,10, 25, 50, {label: "All", value: -1}]}
+                rowsPerPageOptions={[5,10, 25, 50, {label: "All", value: rowCount}]}
                 component="div"
                 count={rowCount}
                 rowsPerPage={rowsPerPage}
