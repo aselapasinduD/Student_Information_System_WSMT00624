@@ -4,9 +4,6 @@ const Read = require("./read");
 
 const read = new Read();
 
-// mail - nodemail@project.innentasolutions.com
-// pass - qKjmBX8Z&]P=
-
 // mail - project@innentasolutions.com
 // pass - +=DC5mFhIlGi
 

@@ -103,7 +103,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
                                 </div>
                                 <textarea className="form-control" id="validationTextarea" rows={12} placeholder="Required Content" name="emailcontent" required />
                                 <div className="invalid-feedback">Please enter a message in the textarea.</div>
-                                <p>{"{{full_name}} , {{email}} , {{wa_number}}" }</p>
+                                <p>{"{{full_name}} , {{email}} , {{wa_number}} , {{whatsapp_group_link}}" }</p>
                             </div>
                             <button type="submit" className="btn btn-danger">Submit</button>
                         </form>

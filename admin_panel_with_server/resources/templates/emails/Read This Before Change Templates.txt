@@ -1,0 +1,12 @@
+File name must be the same for system to recognizes the files.
+
+HTML File Names:
+	phone_number_duplicate_error.html	- When someone try to enter the same phone number two times this mail template will send.
+	unknown_error.html			- When someone try to register if unknown error popup this mail template will send.
+	welcome_mail.html			- When someone successfully requester to the system will send this template.
+
+When you design the templates you can use placeholders on welcome_mail.html file like below.
+	{{full_name}}	- Student Full Name.
+	{{email}}	- Student Email Address.
+	{{wa_number}}	- Student Phone Number.
+	{{whatsapp_group_link}}	- WhatsApp Group Link.

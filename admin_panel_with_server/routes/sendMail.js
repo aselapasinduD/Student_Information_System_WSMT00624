@@ -27,7 +27,7 @@ router.post('/whenregister', async (req, res)=>{
             } catch {
                 emailcontent = "<h3>Hi {{full_name}}</h3><br><p>You’re successfully registered for the BinzO Platform.</p><br><p>Join our WhatsApp group to get the Zoom link and updates:<br>WhatsApp Group Link: {{whatsapp_group_link}}</p><br><p>For more information WhatsApp Us -0784151403<br>See you soon!</p>";
             }
-            result = await Mail.sendMail({to: id, subject: "Welcome to BinzO Free Course!", emailcontent: emailcontent, ishtml: "html"});
+            result = await Mail.sendMail({to: id, subject: "Welcome to BinzO Platform!", emailcontent: emailcontent, ishtml: "html"});
             break;
         case "ER_DUP_ENTRY":
             const duplicateNumberErrorMail = path.join(__dirname, mailTemplatePath, "phone_number_duplicate_error.html");

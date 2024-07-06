@@ -36,7 +36,7 @@ class Create{
             } catch {
                 emailcontent = "<h3>Hi {{full_name}}</h3><br><p>You’re successfully registered for the BinzO Platform.</p><br><p>Join our WhatsApp group to get the Zoom link and updates:<br>WhatsApp Group Link: {{whatsapp_group_link}}</p><br><p>For more information WhatsApp Us -0784151403<br>See you soon!</p>";
             }
-            const sendMail = await Mail.sendMail({to: result.insertId, subject: "Welcome to BinzO Free Course!", emailcontent: emailcontent, ishtml: "html"});
+            const sendMail = await Mail.sendMail({to: result.insertId, subject: "Welcome to BinzO Platform!", emailcontent: emailcontent, ishtml: "html"});
             console.log("Send Mail:\n", sendMail);
 
         } catch (error) {
