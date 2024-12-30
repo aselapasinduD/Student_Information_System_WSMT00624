@@ -1,0 +1,42 @@
+function sendDataToAPI(e) {
+  const sheet = e.range.getSheet();
+  const row = e.range.getRow();
+  const data = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+  const apiUrl = 'https://automation.binzo.site/api/z6LtsUFdwkKyJnfPC4YAHuc/student';
+
+  const referral_number = data[4] === ''? "" : "94" + parseInt(data[4]).toString();
+
+  const payload = {
+    student: {
+      FullName: data[2],
+      Email: data[1],
+      WANumber: "94" + parseInt(data[3]).toString(),
+      ReferralWA: referral_number,
+      RegisterAt: data[0]
+    }
+  };
+
+  const options = {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      'SystemUser': 'automation_server',
+      'Password': 'SsK&zL;/FAEvhu]H:7a=>@',
+      'Auth': 'false'
+    },
+    payload: JSON.stringify(payload),
+  };
+
+  try {
+    const response = UrlFetchApp.fetch(apiUrl, options);
+    Logger.log('Response Code: ' + response.getResponseCode());
+    Logger.log('Response Content: ' + response.getContentText());
+  } catch (error) {
+    Logger.log('Error sending data to API: ' + error);
+  }
+}
+
+function onFormSubmit(e) {
+  sendDataToAPI(e);
+}

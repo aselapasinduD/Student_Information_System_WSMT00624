@@ -10,7 +10,6 @@ router.get('/', function(req, res, next) {
   res.sendFile(path.join(__dirname, "../admin_panel/build", "index.html"));
 });
 
-
 // APIs
 router.post('/login', async (req, res) => {
   const {username, password} = req.body;

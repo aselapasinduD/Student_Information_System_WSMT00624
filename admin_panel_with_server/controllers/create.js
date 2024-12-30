@@ -1,19 +1,31 @@
 const db = require('./admin/database');
 const fs = require("fs").promises;
 const path = require("path");
+const {v4: uuidv4} = require("uuid");
 
 const SendMail = require("./mail");
+const Mail = new SendMail();
 
 const mailTemplatePath = "../resources/templates/emails";
 
-const Mail = new SendMail();
-
+/**
+ * Handle all the create funtions from CURD
+ * 
+ * @since 1.0.0
+ */
 class Create{
     #db;
     constructor(){
         this.#db = db.connection();
     }
     
+    /**
+     * This funtion is handle adding student data to database.
+     * 
+     * @param {Array} student - Array Of Valus (fullname, email, wanumber, referralwa)
+     * @returns {string} - Success message or error message
+     * @since 1.0.0
+     */
     async addStudent(student){
         const {fullname, email, wanumber, referralwa} = student;
         let result;
@@ -72,7 +84,50 @@ class Create{
             }
         }
 
-        return "Added Student Is Success.";
+        return "Adding Student Is Success.";
+    }
+
+    /**
+     * This funtion is handle adding google form data to database.
+     * 
+     * @param {Array} googleForm - Array Of Values (title, color, whatsappGroupLink)
+     * @returns {string} - Success message or error message
+     * @since 1.1.0
+     */
+    async addGoogleForm(googleForm){
+        const {title, color, whatsappGroupLink} = googleForm;
+        const slug = uuidv4();
+        let result;
+        
+        // Add Google Form to the Database
+        let addStudentSQL = `INSERT INTO google_forms_manage(title, slug${color ? ", color" : ""}${whatsappGroupLink ? ", whatsapp_group_link" : ""}) VALUES (?, ?${color ? ", ?" : ""}${whatsappGroupLink ? ", ?" : ""})`;
+
+        // Prepare the array of values for the placeholders
+        const values = [title, slug];
+        if (color) values.push(color);
+        if (whatsappGroupLink) values.push(whatsappGroupLink);
+
+        // console.log(addStudentSQL);
+
+        try {
+            [result] = await this.#db.promise().query(addStudentSQL, values);
+            console.log('Added Student Is Success\n', result);
+        } catch (error) {
+            if (error.code === 'ER_DUP_ENTRY'){
+                console.log("Phone Number Duplicate Error!:", error.sqlMessage);
+                return error.code;
+            } else {
+                if(error.sqlMessage){
+                    console.log("Query Exicution Error!: ", error.sqlMessage);
+                    return "Query Exicution Error!";
+                } else {
+                    console.log("Exicution Error!: ", error);
+                    return "Exicution Error!";
+                }
+            };
+        }
+
+        return "Adding Google Form Is Success.";
     }
 }
 

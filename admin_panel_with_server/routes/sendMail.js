@@ -2,6 +2,7 @@ const express = require("express");
 const fs = require("fs").promises;
 const path = require('path');
 const router = express.Router();
+const upload = require("./multer");
 
 const SendMail = require("../controllers/mail");
 
@@ -9,10 +10,21 @@ const mailTemplatePath = "../resources/templates/emails";
 
 const Mail = new SendMail();
 
-router.post('/', async (req, res)=>{
-    const {id, subject, emailcontent, ishtml} = req.body;
-    const result = await Mail.sendMail({to: parseInt(id.split(",")[0]), subject: subject, emailcontent: emailcontent, ishtml: ishtml});
-    res.status(200).json({message: result, from: 'Main Server'});
+router.post('/', upload.single('imageFile') ,async (req, res)=>{
+    console.log(req.body);
+
+    let imagePath;
+    const {id, subject, emailcontent, ishtml, imagepath, textposition, textsize} = req.body;
+    if(req.file){
+        imagePath = req.file.path;
+    } else if(imagepath) {
+        imagePath = imagepath;
+    } else {
+        imagePath = null;
+    }
+    const result = await Mail.sendMail({to: parseInt(id.split(",")[0]), subject: subject, emailcontent: emailcontent, ishtml: ishtml, imagePath: imagePath, textposition: JSON.parse(textposition), textsize: parseInt(textsize)});
+    // const result = "Working Request";
+    res.status(200).json({message: result, from: 'Main Server', imagepath: imagePath});
 });
 
 router.post('/whenregister', async (req, res)=>{

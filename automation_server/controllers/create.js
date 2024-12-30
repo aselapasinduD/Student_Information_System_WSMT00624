@@ -1,10 +1,18 @@
 const db_connection = require("./helper/database");
 const Helper = require("./helper/helperFunctions");
 const MainServer = require("./mainServerFunctions");
+const Read = require("./read");
 
 const help = new Helper();
 const mainServer = new MainServer();
+const read = new Read();
 
+/**
+ * Handle all the create funtions from CRUD
+ * 
+ * @version 1.1.0
+ * @since 1.0.0
+ */
 class create{
     #db;
 
@@ -12,15 +20,21 @@ class create{
         this.#db = db_connection();
     }
 
-    async addStudent(student){
+    async addStudent(student, GoogleFormSlug){
         const {FullName, Email, WANumber, ReferralWA, RegisterAt} = student;
         let result;
         const referralWA = parseInt(ReferralWA);
         const timestampfromatted = help.formatTimestamp(RegisterAt);
+
+        const GetGoogleForm = await read.getGoogleFormFromSlug(GoogleFormSlug);
+        if(GetGoogleForm.error){
+            return "Didn't find the google from the server.";
+        }
+        const GoogleFormID = GetGoogleForm.result[0].id;
         
         // Add Students to the Database
-        const addStudentSQL = `INSERT INTO student(full_name, email, wa_number, register_at) 
-        VALUES ('${FullName}', '${Email}', ${parseInt(WANumber)}, '${timestampfromatted}')`;
+        const addStudentSQL = `INSERT INTO student(full_name, email, wa_number, register_at, status, google_form_id) 
+        VALUES ('${FullName}', '${Email}', ${parseInt(WANumber)}, '${timestampfromatted}', '${JSON.stringify(["gf"])}', ${GoogleFormID})`;
 
         try {
             [result] = await this.#db.promise().query(addStudentSQL);
