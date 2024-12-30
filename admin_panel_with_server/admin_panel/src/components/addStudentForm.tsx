@@ -2,24 +2,30 @@ import React, { Fragment, useState } from "react";
 
 import AlertDialog from "./alertDialog";
 
-interface Notification{
-    message: string;
-    from: string;
-    error: boolean;
-}
+import baseAPI from '../states/api';
+
+import { Message } from "../states/type";
 
 interface props{
     handleFormClose: () => void;
-    collectNotifications: (notification: Notification) => void;
+    collectNotifications: (notification: Message) => void;
 }
 
+/**
+ * Add form component for students.
+ * 
+ * @param {functions} handleFormClose - Controle Form Close
+ * @param {functions} collectNotifications - Notification Collect Function
+ * @returns {JSX.Element}
+ * @since 1.0.0
+ */
 const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotifications}) =>{
 
     const [isDialogOpen, getIsDialogOpen] = useState<boolean>(false);
     const [formData, getFormData] = useState<URLSearchParams | null>(null);
 
     const submitForm = async(formData: URLSearchParams) => {
-        const response = await fetch("/admin-panel/student", {
+        const response = await fetch(baseAPI + "/admin-panel/student", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
@@ -27,7 +33,7 @@ const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotifications}
             body: formData.toString()
         })
         if(response.ok) {
-            const notification = await response.json() as Notification;
+            const notification = await response.json() as Message;
             console.log(notification);
             collectNotifications(notification);
         } else {

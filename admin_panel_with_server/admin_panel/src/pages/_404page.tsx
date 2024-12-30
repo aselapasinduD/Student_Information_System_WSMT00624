@@ -1,3 +1,9 @@
+/**
+ * This component handle the homepage funtions and data
+ * 
+ * @returns {JSX.Element}
+ * @since 1.0.0
+ */
 const _404page = () => {
     return(
         <div className="_404page">

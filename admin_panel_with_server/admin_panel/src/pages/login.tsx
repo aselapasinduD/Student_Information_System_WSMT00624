@@ -1,9 +1,16 @@
+import baseAPI from '../states/api';
+/**
+ * This component handle the login funtions and data
+ * 
+ * @returns {JSX.Element}
+ * @since 1.0.0
+ */
 const Login = () => {
     return(
         <div className="admin-login">
             <div className="form-container">
                 <h1>Admin Login</h1>
-                <form action="/admin-login/login" method="post">
+                <form action={baseAPI + "/admin-login/login"} method="post">
                 <div className="mb-3">
                     <label htmlFor="username" className="form-label">Username</label>
                     <input type="text" className="form-control" id="username" name="username" aria-describedby="emailHelp" />

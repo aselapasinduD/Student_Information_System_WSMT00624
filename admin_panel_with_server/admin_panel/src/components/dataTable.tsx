@@ -1,5 +1,6 @@
 import React, {useState, Fragment, useEffect, useMemo} from 'react';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
 import Table from '@mui/material/Table';
@@ -20,6 +21,10 @@ import TextField from '@mui/material/TextField';
 import Menu, {MenuProps} from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import Chip from '@mui/material/Chip';
 
 // MUI Icons
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -37,18 +42,8 @@ import EmailIcon from '@mui/icons-material/Email';
 
 import AlertDialog from "./alertDialog";
 
-interface Student {
-  id: number;
-  full_name: string;
-  email: string;
-  number_of_mails: number;
-  wa_number: number | string;
-  register_at: string;
-  created_at: string;
-  updated_at: string;
-  number_of_referrals: number;
-  referral_student: Student[];
-}
+import { Student, Message } from '../states/type';
+import baseAPI from '../states/api';
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -125,6 +120,7 @@ const FilterMenus = (props: filterMenus) => {
   const [valueNumberOfReferrals, getValueNumberOfRegerrals] = useState<string>("");
   const [valueRegisterAt, getValueRegisterAt] = useState<string>("");
   const [isBelowChecked, setIsBelowChecked] = useState<boolean>(false);
+  const [googleFormTitle, setGoogleFormTitle] = useState<string>("");
 
   const handleIdChange = (value: string) => {
     getValueID(value);
@@ -141,6 +137,7 @@ const FilterMenus = (props: filterMenus) => {
     getValueID("");
     getValueNumberOfRegerrals("");
     getValueRegisterAt("");
+    setGoogleFormTitle("");
   }
 
   useEffect(()=>{
@@ -164,6 +161,10 @@ const FilterMenus = (props: filterMenus) => {
       );
     }
   },[valueID, valueNumberOfReferrals, valueRegisterAt, isBelowChecked, open, setfilteroptions]);
+
+  const handleGoogleFormTitleChanges = (event: SelectChangeEvent) => {
+    setGoogleFormTitle(event.target.value as string);
+  };
 
   return (
       <Menu
@@ -199,6 +200,25 @@ const FilterMenus = (props: filterMenus) => {
         </MenuItem>
         <MenuItem onKeyDown={(e) => e.stopPropagation()}>
           <TextField name='register_at' hiddenLabel label="Register At" placeholder='2024-06-28 00:00' size='small' margin='none' inputProps={{pattern: "[0-9]{11}", value: valueRegisterAt}} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleRegisterAtChange(e.target.value)}/>
+        </MenuItem>
+        <MenuItem onKeyDown={(e) => e.stopPropagation()}>
+          <FormControl size="small" sx={{width: "100%"}}>
+            <InputLabel id="google-form-title-select-label">Google Form Title</InputLabel>
+            <Select
+              labelId="google-form-title-select-label"
+              id="demo-simple-select"
+              value={googleFormTitle}
+              label="Google Form Title"
+              onChange={handleGoogleFormTitleChanges}
+            >
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
+              <MenuItem value={10}>Ten</MenuItem>
+              <MenuItem value={20}>Twenty</MenuItem>
+              <MenuItem value={30}>Thirty</MenuItem>
+            </Select>
+          </FormControl>
         </MenuItem>
         <MenuItem onKeyDown={(e) => e.stopPropagation()} onClick={handleClearFilters} style={{justifyContent: "center"}}>
           <Typography align='center'>Clear Filters</Typography>
@@ -302,14 +322,18 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
           {numSelected} selected
         </Typography>
       ) : (
-        <Typography
-          sx={{ flex: '1 1 100%' }}
-          variant="h6"
-          id="tableTitle"
-          component="div"
-        >
-          Students
-        </Typography>
+        <Stack direction="row" spacing={2} sx={{ flex: '1 1 100%', alignItems: 'center' }}>
+          <Typography
+            variant="h6"
+            id="tableTitle"
+            component="div"
+          >
+            Students
+          </Typography>
+          <Typography variant="caption" gutterBottom sx={{ display: 'block' }}>
+            <strong>Status:</strong> Google Form - <Chip label="GF" sx={{fontWeight: 600}} /> | Certificate Emailed - <Chip label="CM" sx={{fontWeight: 600}} /> | Imported Bundle - <Chip label="IB" sx={{fontWeight: 600}} />
+          </Typography>
+        </Stack>
       )}
       {numSelected > 0 ? (
         <Fragment>
@@ -380,10 +404,24 @@ const formatDateTime = (date: string) => {
   return formattedDate;
 }
 
+/**
+ * This function is for handle rows
+ * 
+ * @param {object} row - list of student details
+ * @param {number} index - row index number
+ * @param {function} isSelected - function for check is selected row
+ * @param {function} handleSelectClick - function for handle selected rows
+ * @param {function} handleCustormEmailFormOpen - function for handle send email for each student
+ * @param {function} handleEditFormOpen - function for handle edit student details for each row
+ * @returns {JSX.Element}
+ * @version 1.1.0
+ * @since 1.0.0
+ */
 const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, handleCustormEmailFormOpen, handleEditFormOpen}) => {
   const [open, setOpen] = useState(false);
   const isItemSelected = isSelected(row.id);
   const labelId = `checkbox-student-${index}`;
+  console.log(JSON.parse(row.status));
 
   return (
     <Fragment>
@@ -391,9 +429,9 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
         hover
         aria-checked={isItemSelected}
         selected={isItemSelected}
-        sx={{ '& > *': { borderBottom: 'unset' } }}
+        sx={{background: `linear-gradient(165deg, transparent 20%, ${row.google_form_color}) !important`}}
         >
-        <TableCell padding="checkbox">
+        <TableCell padding="none">
           <Checkbox
             color="primary"
             onClick={(event) => handleSelectClick(event, row.id)}
@@ -403,16 +441,18 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
             }}
           />
         </TableCell>
-        <TableCell>
-          <IconButton
-            aria-label="expand row"
-            size="small"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
+        <TableCell padding="none">
+          {Boolean(row.referral_student.length !== 0) && 
+            <IconButton
+              aria-label="expand row"
+              size="small"
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+          }
         </TableCell>
-        <TableCell component="th" scope="row">
+        <TableCell padding='none' scope="row" align="center">
           {row.id}
         </TableCell>
         <TableCell >{row.full_name}</TableCell>
@@ -423,6 +463,7 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
             <TableCell align='center' sx={{color: "green"}}>{row.number_of_referrals}</TableCell> :
             <TableCell align='center' sx={{color: "red"}}>{row.number_of_referrals}</TableCell>
         }
+        <TableCell align='center' >{Boolean(row.status) && JSON.parse(row.status).map((status: string) => <Chip label={`${status.toLocaleUpperCase()}`} sx={{fontWeight: 600}} />)}</TableCell>
         <TableCell >{formatDateTime(row.register_at)}</TableCell>
         <TableCell >{formatDateTime(row.updated_at)}</TableCell>
         <TableCell >
@@ -451,52 +492,48 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
           </Tooltip>
         </TableCell>
       </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box sx={{ margin: 1 }}>
-              <Typography variant="h6" gutterBottom component="p">
-                Referral Students - {row.number_of_referrals}
-              </Typography>
-              <Table size="small" aria-label="purchases">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>ID</TableCell>
-                    <TableCell>Full Name</TableCell>
-                    <TableCell >Email</TableCell>
-                    <TableCell >Whatsapp Number</TableCell>
-                    <TableCell >Register Date</TableCell>
-                    <TableCell >Created Date</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {row.referral_student.length !== 0? row.referral_student.map((student, index) => (
-                    <TableRow key={index}>
-                      <TableCell >{student.id}</TableCell>
-                      <TableCell >{student.full_name}</TableCell>
-                      <TableCell >{student.email}</TableCell>
-                      <TableCell >{student.wa_number}</TableCell>
-                      <TableCell >{student.register_at}</TableCell>
-                      <TableCell >{student.created_at}</TableCell>
+      {Boolean(row.referral_student.length !== 0) &&
+        <TableRow>
+          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
+            <Collapse in={open} timeout="auto" unmountOnExit>
+              <Box sx={{ margin: 1 }}>
+                <Typography variant="h6" gutterBottom component="p">
+                  Referral Students - {row.number_of_referrals}
+                </Typography>
+                <Table size="small" aria-label="purchases">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>ID</TableCell>
+                      <TableCell>Full Name</TableCell>
+                      <TableCell >Email</TableCell>
+                      <TableCell >Whatsapp Number</TableCell>
+                      <TableCell >Register Date</TableCell>
+                      <TableCell >Created Date</TableCell>
                     </TableRow>
-                  )) : 
-                  <TableRow>
-                      <TableCell colSpan={10} scope="row" align='center'>There is no any referral Students Yet.(refesh the page)</TableCell>
-                  </TableRow>}
-                </TableBody>
-              </Table>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {row.referral_student.length !== 0? row.referral_student.map((student, index) => (
+                      <TableRow key={index}>
+                        <TableCell >{student.id}</TableCell>
+                        <TableCell >{student.full_name}</TableCell>
+                        <TableCell >{student.email}</TableCell>
+                        <TableCell >{student.wa_number}</TableCell>
+                        <TableCell >{student.register_at}</TableCell>
+                        <TableCell >{student.created_at}</TableCell>
+                      </TableRow>
+                    )) : 
+                    <TableRow>
+                        <TableCell colSpan={10} scope="row" align='center'>There is no any referral Students Yet.(refesh the page)</TableCell>
+                    </TableRow>}
+                  </TableBody>
+                </Table>
+              </Box>
+            </Collapse>
+          </TableCell>
+        </TableRow>
+      }
     </Fragment>
   );
-}
-
-interface Notification{
-  message: string;
-  from: string;
-  error: boolean;
 }
 
 interface rowStudents{
@@ -504,7 +541,7 @@ interface rowStudents{
   handleAddFormOpen: () => void;
   handleEditFormOpen: (EditStudent: EditStudent) => void;
   handleCustormEmailFormOpen: (id: readonly number[]) => void;
-  collectNotifications: (notification: Notification) => void;
+  collectNotifications: (notification: Message) => void;
 }
 
 interface ColumnNames {
@@ -520,20 +557,20 @@ const columnNames: readonly ColumnNames[] = [
     id: "id",
     label: "ID",
     numeric: true,
-    padding: "checkbox",
+    padding: "none",
     aligment: "left"
   },
   {
     id: "full_name",
     label: "Full Name",
-    numeric: true,
+    numeric: false,
     padding: 'normal',
     aligment: "left"
   },
   {
     id: "email",
     label: "Email",
-    numeric: true,
+    numeric: false,
     padding: 'normal',
     aligment: "left"
   },
@@ -547,33 +584,52 @@ const columnNames: readonly ColumnNames[] = [
   {
     id: "wa_number",
     label: "Whatsapp Number",
-    numeric: true,
+    numeric: false,
     padding: 'normal',
     aligment: "left"
   },
   {
     id: "number_of_referrals",
     label: "Number Of Referrals",
-    numeric: true,
+    numeric: false,
+    padding: "checkbox",
+    aligment: "left"
+  },
+  {
+    id: "status",
+    label: "Status",
+    numeric: false,
     padding: "checkbox",
     aligment: "left"
   },
   {
     id: "register_at",
     label: "Register Date",
-    numeric: true,
+    numeric: false,
     padding: 'normal',
     aligment: "left"
   },
   {
     id: "updated_at",
     label: "Updated Date",
-    numeric: true,
+    numeric: false,
     padding: 'normal',
     aligment: "left"
   }
 ]
 
+/**
+ * Main Students data table assemble funtion.
+ * 
+ * @param {array} rows - all the students fetch from database
+ * @param {function} handleAddFormOpen - this the function for handle students create form
+ * @param {function} handleEditFormOpen - this the function for handle students edit form
+ * @param {function} handleCustormEmailFormOpen - this the function for handle send emails for each student
+ * @param {function} collectNotifications - Notification Collect Function
+ * @returns {JSX.Element}
+ * @version 1.1.0
+ * @since 1.0.0
+ */
 const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFormOpen, handleCustormEmailFormOpen, collectNotifications}) => {
     const [order, setOrder] = useState<Order>('desc');
     const [orderBy, setOrderBy] = useState<keyof Student | Unassigned>('id');
@@ -640,7 +696,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
 
     const DeleteStudents = async() => {
       try{
-        const response = await fetch("/admin-panel/student",
+        const response = await fetch(baseAPI + "/admin-panel/student",
         {
           method: "DELETE",
           headers: {
@@ -649,7 +705,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
           body: JSON.stringify({listofdelete: selected})
         })
         if(response.ok) {
-          const notification = await response.json() as Notification;
+          const notification = await response.json() as Message;
           collectNotifications(notification);
           window.location.reload();
         } else {
@@ -663,7 +719,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
     }
 
     const handleDelete = async () => {
-      console.log(selected);
+      // console.log(selected);
       getIsDialogOpen(true);
     }
 
@@ -672,8 +728,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
       if(!isDialogOpen) return;
       getIsDialogOpen(false);
       await DeleteStudents();
-  }
-
+    }
 
     const handleChangePage = (event: unknown, newPage: number) => {
       setPage(newPage);
@@ -689,77 +744,77 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
     }
     return (
       <Fragment>
-        <Paper sx={{marginTop: "20px"}}>
-        <EnhancedTableToolbar 
-          numSelected={numSelected}
-          handleAddFormOpen={handleAddFormOpen}
-          handleDelete={handleDelete}
-          handleCustomeEmailForAll={handleCustomeEmailForAll}
-          setFilterOptions={setFilterOptions}
-        />
-        <TableContainer>
-            <Table aria-label="collapsible table" size={"small"}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        color="primary"
-                        indeterminate={numSelected > 0 && numSelected < rowCount}
-                        checked={rowCount > 0 && numSelected === rowCount}
-                        onChange={handleSelectAllClick}
-                        inputProps={{
-                          'aria-label': 'select all desserts',
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell />
-                    {columnNames.map((column) => {
-                      return(
-                        <TableCell
-                          key={column.id}
-                          align={column.id==="number_of_referrals" || column.id==="number_of_mails"? "center": "left"}
-                          sortDirection={orderBy === column.id ? order : false}
-                          padding={column.padding}
-                        >
-                          <TableSortLabel
-                            active={orderBy === column.id}
-                            direction={orderBy === column.id ? order : 'asc'}
-                            onClick={createSortHandler(column.id)}
+        <Paper>
+          <EnhancedTableToolbar 
+            numSelected={numSelected}
+            handleAddFormOpen={handleAddFormOpen}
+            handleDelete={handleDelete}
+            handleCustomeEmailForAll={handleCustomeEmailForAll}
+            setFilterOptions={setFilterOptions}
+          />
+          <TableContainer>
+              <Table aria-label="collapsible table" size={"small"}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell padding="none">
+                        <Checkbox
+                          color="primary"
+                          indeterminate={numSelected > 0 && numSelected < rowCount}
+                          checked={rowCount > 0 && numSelected === rowCount}
+                          onChange={handleSelectAllClick}
+                          inputProps={{
+                            'aria-label': 'select all desserts',
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell padding="none" />
+                      {columnNames.map((column) => {
+                        return(
+                          <TableCell
+                            key={column.id}
+                            align={column.numeric ? 'center' : 'left'}
+                            sortDirection={orderBy === column.id ? order : false}
+                            padding={column.padding}
                           >
-                            {column.label}
-                            {orderBy === column.id ? (
-                              <Box component="span" sx={visuallyHidden}>
-                                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                              </Box>
-                            ) : null}
-                          </TableSortLabel>
-                        </TableCell>
-                      );
-                    })}
-                    <TableCell align="center" padding='checkbox'>
-                      Send
-                    </TableCell>
-                    <TableCell padding='checkbox' />
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                    {visibleRows.map((row, index) => (
-                        <Row key={index} row={row} index={index} isSelected={isSelected} handleSelectClick={handleSelectClick} handleEditFormOpen={handleEditFormOpen} handleCustormEmailFormOpen={handleCustormEmailFormOpen}/>
-                    ))}
-                </TableBody>
-            </Table>
-            <TablePagination
-                rowsPerPageOptions={[5,10, 25, 50, {label: "All", value: rowCount}]}
-                component="div"
-                count={rowCount}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                ActionsComponent={TablePaginationActions}
-                sx={{ '& *': {margin: "0 !important"}}}
-            />
-        </TableContainer>
+                            <TableSortLabel
+                              active={orderBy === column.id}
+                              direction={orderBy === column.id ? order : 'asc'}
+                              onClick={createSortHandler(column.id)}
+                            >
+                              {column.label}
+                              {orderBy === column.id ? (
+                                <Box component="span" sx={visuallyHidden}>
+                                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                                </Box>
+                              ) : null}
+                            </TableSortLabel>
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell align="center" padding='checkbox'>
+                        Send
+                      </TableCell>
+                      <TableCell padding='checkbox' />
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                      {visibleRows.map((row, index) => (
+                          <Row key={index} row={row} index={index} isSelected={isSelected} handleSelectClick={handleSelectClick} handleEditFormOpen={handleEditFormOpen} handleCustormEmailFormOpen={handleCustormEmailFormOpen}/>
+                      ))}
+                  </TableBody>
+              </Table>
+              <TablePagination
+                  rowsPerPageOptions={[5,10, 25, 50, {label: "All", value: rowCount}]}
+                  component="div"
+                  count={rowCount}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  ActionsComponent={TablePaginationActions}
+                  sx={{ '& *': {margin: "0 !important"}}}
+              />
+          </TableContainer>
         </Paper>
         {Boolean(selected.length !== 0) && <AlertDialog title="Are you want to delete this student?" description="If you want to delete the students click Yes. if you don't click No." isDialogOpen={isDialogOpen} getIsDialogOpen={getIsDialogOpen} handleFormSubmitConform={handleFormSubmitConform} />}
       </Fragment>

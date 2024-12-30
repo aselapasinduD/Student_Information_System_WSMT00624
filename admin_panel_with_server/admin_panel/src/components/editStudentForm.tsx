@@ -2,6 +2,8 @@ import React, { useState, Fragment } from "react";
 
 import AlertDialog from "./alertDialog";
 
+import baseAPI from '../states/api';
+
 interface Notification{
     message: string;
     from: string;
@@ -20,6 +22,15 @@ interface props{
     editStudent: EditStudent;
 }
 
+/**
+ * Edit form component for Student.
+ * 
+ * @param {function} handleFormClose - Controle Form Close
+ * @param {function} collectNotifications - Notification Collect Function
+ * @param {array} editStudent - Array of Student Details
+ * @returns {JSX.Element}
+ * @since 1.0.0
+ */
 const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications, editStudent}) =>{
     let {id} = editStudent;
     const [fullName, setFullName] = useState<string>(editStudent.full_name);
@@ -39,7 +50,7 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
     }
 
     const submitForm = async(formData: URLSearchParams) => {
-        const response = await fetch("/admin-panel/student", {
+        const response = await fetch(baseAPI + "/admin-panel/student", {
             method: "PUT",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
@@ -49,6 +60,7 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
         if(response.ok) {
             const notification = await response.json() as Notification;
             collectNotifications(notification);
+            window.location.reload();
         } else {
             console.log("Add Student didn't Success");
             collectNotifications({message: "Edit Student didn't Success", from: "Server", error: true});
