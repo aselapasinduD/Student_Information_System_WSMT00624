@@ -41,6 +41,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
     const [placeholderTextPosition, setPlaceholderTextPosition] = useState<position>({x: 0, y: 0});
     const [isPlaceholderTextDraggable, makePlaceholderTextDraggable] = useState<boolean>(false);
     const [originalImageSize, setOriginalImageSize] = useState<position>({x: 0, y: 0});
+    const [textTransform, setTextTransform] = useState<string>("Aa");
 
     const submitForm = async(formData: FormData) => {
         let numberOfIds = id.length;
@@ -91,15 +92,11 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
         getProgress(0);
 
         let formData = new FormData(event.currentTarget as HTMLFormElement);
-        // const inputs = event.currentTarget.getElementsByClassName("form-control");
-
-        // for(let i=0; i<inputs.length; i++){
-        //     const inputElement = inputs[i] as HTMLInputElement;
-        //     formData.append(inputElement.name,inputElement.value);
-        // }
+        
         formData.append("ishtml", isHtmlContent);
         formData.append("textposition", JSON.stringify(placeholderTextPosition));
         formData.append("textsize", placeholderSize.toString());
+        formData.append('texttransform', textTransform == "Aa"? "capitalize" : textTransform == "AA"? "uppercase" : "lowercase");
         getFormData(formData);
     }
 
@@ -247,17 +244,20 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
                             <div>
                                 <div className="d-flex justify-content-between mb-2">
                                     <label htmlFor="imageFile" className="form-label">Upload The Image</label>
-                                    <div className="d-flex gap-2">
-                                        <input type="text" className="form-control" placeholder="Placeholder Name." onInput={(event) => setPlaceholderText(event.currentTarget.value)}/>
-                                        <input type="number" className="form-control" value={placeholderSize} step={1} style={{width: "60px"}} min={6} onInput={(event) => getPlaceholderSize(parseInt(event.currentTarget.value))} />
-                                        <button type="button" className="btn btn-warning btn-sm" onClick={handleImageRemoveButton}>Remove</button>
-                                    </div>
+                                    {Boolean(imageURL) &&
+                                        <div className="d-flex gap-2">
+                                            <input type="text" className="form-control" placeholder="Placeholder Name." onInput={(event) => setPlaceholderText(event.currentTarget.value)}/>
+                                            <input type="number" className="form-control" value={placeholderSize} step={1} style={{width: "60px"}} min={6} onInput={(event) => getPlaceholderSize(parseInt(event.currentTarget.value))} />
+                                            <button type="button" className="btn btn-secondary btn-sm" style={{width: "60px"}} onClick={() => setTextTransform((prevValue) => prevValue == "aa"? "Aa": prevValue == "Aa"? "AA" : "aa")}>{textTransform}</button>
+                                            <button type="button" className="btn btn-warning btn-sm" onClick={handleImageRemoveButton}>Remove</button>
+                                        </div>
+                                    }
                                 </div>
                                 <input type="file" id="imageFile" name="imageFile" accept=".jpg, .jpeg, .png" onInput={handleImageUpload} className="d-none" ref={imageInputRef} />
                                 <div className="w-100 d-flex mb-4 rounded-3 position-relative justify-content-center align-items-center overflow-hidden border" style={{minHeight: '100px'}}>
                                     { Boolean(imageURL) &&
                                         <div className="position-absolute border border-primary rounded-3" style={{backgroundColor: "rgb(13 110 253 / 30%)", cursor: "pointer"}} onMouseDown={handleDragPlaceholder} ref={textPlaceholderRef}>
-                                            <p className="my-0 mx-1" style={{fontSize: `${viewFontSize}px`}}>{placeholderText ?? "Placeholder Text"}</p>
+                                            <p className="my-0 mx-1" style={{fontSize: `${viewFontSize}px`, textTransform: textTransform == "Aa"? "capitalize" : textTransform == "AA"? "uppercase" : "lowercase"}}>{placeholderText ?? "Placeholder Text"}</p>
                                         </div>
                                     }
                                     {!Boolean(imageURL) && <button type="button" className="btn btn-outline-secondary position-absolute" onClick={handleImageUploadButton}>Upload Image</button>}

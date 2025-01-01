@@ -5,7 +5,7 @@ const path = require("path");
 class ImageProcess {
     constructor() {}
 
-    async addName(studentName, imagePath, location, textSize) {
+    async addName(studentName, imagePath, location, textSize, textTransform) {
         if (!location || typeof location.x !== 'number' || typeof location.y !== 'number') {
             throw new Error('Invalid location coordinates');
         }
@@ -14,6 +14,20 @@ class ImageProcess {
         }
         if (!imagePath || typeof imagePath !== 'string') {
             throw new Error('Invalid image path');
+        }
+
+        switch (textTransform) {
+            case 'uppercase':
+                studentName = studentName.toUpperCase();
+                break;
+            case 'lowercase':
+                studentName = studentName.toLowerCase();
+                break;
+            case 'capitalize':
+                studentName = studentName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+                break;
+            default:
+                studentName = studentName;
         }
 
         const fontFile = path.resolve('admin_panel_with_server','../resources/fonts/font-regular.ttf');

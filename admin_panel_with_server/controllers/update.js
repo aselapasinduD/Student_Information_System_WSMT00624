@@ -51,15 +51,15 @@ class Update{
      * @since 1.1.0
      */
     async udpateGoogleForm(GoogleForm){
-        const {id, title, color, whatsapp_group_link} = GoogleForm;
+        const {id, title, color, whatsappGroupLink} = GoogleForm;
         let result;
-
+        
         // console.log(`id: ${id}\nfullname: ${fullname}\nemail: ${email}\nwanumber: ${wanumber}\ndate: ${formattedDatetime}`);
 
         // Update Students to the Database
-        const updateStudentSQL = `UPDATE google_forms_manage SET title=?, color=? ${whatsapp_group_link ? ", whatsapp_group_link=?" : ""} WHERE id=${id}`;
+        const updateStudentSQL = `UPDATE google_forms_manage SET title=?, color=? ${whatsappGroupLink ? ", whatsapp_group_link=?" : ""} WHERE id=${id}`;
         const values = [title, color];
-        if (whatsapp_group_link) values.push(whatsapp_group_link);
+        if (whatsappGroupLink) values.push(whatsappGroupLink);
 
         try {
             [result] = await this.#db.promise().query(updateStudentSQL, values);

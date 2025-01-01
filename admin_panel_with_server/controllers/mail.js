@@ -41,7 +41,7 @@ class SendMail {
      * @since 1.0.0
      */
     async sendMail(options){
-        const {to, subject, emailcontent, ishtml, imagePath, textposition, textsize} = options;
+        const {to, subject, emailcontent, ishtml, imagePath, textposition, textsize, texttransform} = options;
         let mailOptions;
 
         let full_name, email, wa_number;
@@ -81,7 +81,7 @@ class SendMail {
              * @since 1.1.0
              */
             if(imagePath){
-                const imageBuffer = await imageProcess.addName( full_name, path.join(__dirname, "../" , imagePath), textposition, textsize);
+                const imageBuffer = await imageProcess.addName( full_name, path.join(__dirname, "../" , imagePath), textposition, textsize, texttransform);
                 mailOptions.attachments =  [
                                                 {
                                                     filename: 'certificate.jpg',
@@ -107,7 +107,7 @@ class SendMail {
              * @since 1.1.0
              */
             if(imagePath){
-                const imageBuffer = await imageProcess.addName( full_name, path.join(__dirname, "../" , imagePath), textposition, textsize);
+                const imageBuffer = await imageProcess.addName( full_name, path.join(__dirname, "../" , imagePath), textposition, textsize, texttransform);
                 mailOptions.attachments =  [
                                                 {
                                                     filename: 'certificate.jpg',

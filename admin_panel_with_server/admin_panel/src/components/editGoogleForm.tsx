@@ -75,6 +75,7 @@ const EditGoogleForm: React.FC<props> = ({handleFormClose, collectNotifications,
     }
 
     const submitForm = async(formData: URLSearchParams) => {
+        console.log(formData.getAll(""));
         const response = await fetch(baseAPI + "/admin-panel/googleform", {
             method: "PUT",
             headers: {

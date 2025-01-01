@@ -133,7 +133,7 @@ router.get('/googleform/code', async (req, res) => {
     function onFormSubmit(e) {
       sendDataToAPI(e);
     }`
-  res.status(200).json({message: 'Get google forms success.', from: 'Main Server', body: googleFormCode});
+  res.status(200).json({message: 'Get Google Form code success.', from: 'Main Server', body: googleFormCode});
 });
 router.get('/googleform/link', async (req, res) => {
   const {id} = req.query;

@@ -31,6 +31,11 @@ import { GoogleForm, Message } from '../states/type';
 import baseAPI from '../states/api';
 import AlertDialog from "./alertDialog";
 
+interface ResponseGoogleFormCode{
+  message: string,
+  body: string
+}
+
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
     return -1;
@@ -278,6 +283,8 @@ interface RowProps {
   handleSelectClick: (event: React.MouseEvent<unknown>, id: number) => void;
   handleEditFormOpen: (EditGoogleForm: editGoogleForm) => void;
   handleDeleteRow: (rowID: number) => void;
+  getGoogleFormCode: (googleFormID: number) => void;
+  getGoogleFormLink: (googleFormID: number) => void;
 }
 
 /**
@@ -292,7 +299,7 @@ interface RowProps {
  * @returns {JSX.Element}
  * @since 1.1.0
  */
-const  Row: React.FC<RowProps>  = ({ row, index, isSelected, handleSelectClick, handleEditFormOpen, handleDeleteRow}) => {
+const  Row: React.FC<RowProps>  = ({ row, index, isSelected, handleSelectClick, handleEditFormOpen, handleDeleteRow, getGoogleFormCode, getGoogleFormLink}) => {
     const [open, setOpen] = useState(false);
     const isItemSelected = isSelected(row.id);
     const labelId = `checkbox-googleform-${index}`;
@@ -329,12 +336,12 @@ const  Row: React.FC<RowProps>  = ({ row, index, isSelected, handleSelectClick, 
                   {row.slug}
                   <div style={{display: 'flex'}}>
                     <Tooltip title="Copy Code">
-                      <IconButton>
+                      <IconButton onClick={() => getGoogleFormCode(row.id)} >
                         <CodeIcon />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Copy URL">
-                      <IconButton>
+                      <IconButton onClick={() => getGoogleFormLink(row.id)} >
                         <LinkIcon />
                       </IconButton>
                     </Tooltip>
@@ -481,22 +488,58 @@ const GoogleFormDataTable: React.FC<propsOfGoogleFormDataTable> = ({rows, handle
   const handleCopyGoogleFormSubmitCode = (id: number) => {
       const fetchStudent = async () => {
         try{
-            const response = await fetch(baseAPI + "/admin-panel/students",{
+            const response = await fetch(baseAPI + `/admin-panel/googleform/code?id=${id}`,{
                 method: 'GET'
             });
             if(!response){
-                throw new Error("Failed to fetch students from the server");
+                throw new Error("Failed to fetch Google Form code from the server");
             }
-            const studentArr = await response.json() as Response;
-            // getStudents(studentArr.body? studentArr.body : Loading);
-            collectNotifications({message: "Fetching Students From Server Success.", from: "Main Server", error: false});
+            const googleFormCode = await response.json() as ResponseGoogleFormCode;
+
+            const permissionStatus = await navigator.permissions.query({ name: 'clipboard-write' as PermissionName });
+
+            if (permissionStatus.state === 'denied') {
+              collectNotifications({message: "Clipboard write permission is denied.", from: "Main Server", error: false});
+              return;
+            }
+
+            await navigator.clipboard.writeText(googleFormCode.body);
+            collectNotifications({message: "Google Form code is Copied.", from: "Main Server", error: false});
         } catch (error){
-            console.log("Error Fetching Students From Server: ", error);
-            collectNotifications({message: "Error Fetching Students From Server.", from: "Main Server", error: true});
+            console.log("Error Fetching Google Form code From Server: ", error);
+            collectNotifications({message: "Google Form code is copying failed.", from: "Main Server", error: true});
         }
     }
     fetchStudent();
   }
+
+  const handleCopyGoogleFormSubmitLink = (id: number) => {
+    const fetchStudent = async () => {
+      try{
+          const response = await fetch(baseAPI + `/admin-panel/googleform/link?id=${id}`,{
+              method: 'GET'
+          });
+          if(!response){
+              throw new Error("Failed to fetch Google Form link from the server");
+          }
+          const googleFormCode = await response.json() as ResponseGoogleFormCode;
+
+          const permissionStatus = await navigator.permissions.query({ name: 'clipboard-write' as PermissionName });
+
+          if (permissionStatus.state === 'denied') {
+            collectNotifications({message: "Clipboard write permission is denied.", from: "Main Server", error: false});
+            return;
+          }
+
+          await navigator.clipboard.writeText(googleFormCode.body);
+          collectNotifications({message: "Google Form link is Copied.", from: "Main Server", error: false});
+      } catch (error){
+          console.log("Error Fetching Google Form link From Server: ", error);
+          collectNotifications({message: "Google Form link is copying failed.", from: "Main Server", error: true});
+      }
+  }
+  fetchStudent();
+}
 
   return (
     <Fragment>
@@ -522,7 +565,7 @@ const GoogleFormDataTable: React.FC<propsOfGoogleFormDataTable> = ({rows, handle
                     />
                     <TableBody>
                       {visibleRows.map((row, index) => {
-                          return (<Row key={index} row={row} index={index} isSelected={isSelected} handleSelectClick={handleSelectClick} handleEditFormOpen={handleEditFormOpen} handleDeleteRow={handleDeleteButtonOneRow} />);
+                          return (<Row key={index} row={row} index={index} isSelected={isSelected} handleSelectClick={handleSelectClick} handleEditFormOpen={handleEditFormOpen} handleDeleteRow={handleDeleteButtonOneRow} getGoogleFormCode={handleCopyGoogleFormSubmitCode} getGoogleFormLink={handleCopyGoogleFormSubmitLink} />);
                       })}
                     </TableBody>
                 </Table>

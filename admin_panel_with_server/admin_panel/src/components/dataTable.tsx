@@ -199,7 +199,7 @@ const FilterMenus = (props: filterMenus) => {
           <FormControlLabel control={<Checkbox onChange={(e)=>setIsBelowChecked(e.target.checked)} />} label="Below" />
         </MenuItem>
         <MenuItem onKeyDown={(e) => e.stopPropagation()}>
-          <TextField name='register_at' hiddenLabel label="Register At" placeholder='2024-06-28 00:00' size='small' margin='none' inputProps={{pattern: "[0-9]{11}", value: valueRegisterAt}} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleRegisterAtChange(e.target.value)}/>
+          <TextField name='register_at' hiddenLabel label="Register At" placeholder='Jan 01, 2025, 00:00 PM' size='small' margin='none' inputProps={{pattern: "[0-9]{11}", value: valueRegisterAt}} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleRegisterAtChange(e.target.value)}/>
         </MenuItem>
         <MenuItem onKeyDown={(e) => e.stopPropagation()}>
           <FormControl size="small" sx={{width: "100%"}}>
@@ -398,11 +398,19 @@ interface RowProps {
   handleEditFormOpen: (EditStudent: EditStudent) => void;
 }
 
-const formatDateTime = (date: string) => {
-  const customDate = new Date(date);
-  const formattedDate = `${customDate.toISOString().slice(0, 16).replace("T", " ")} UTC`; // Output: 2024-06-12 00:00
-  return formattedDate;
-}
+// const formatDateTime = (date: string) => {
+//   const utcDate = new Date(date); // Convert to local time zone
+//   const options = {
+//     year: 'numeric' as 'numeric', // Explicitly type the values
+//     month: 'short' as 'short',      // as per DateTimeFormatOptions
+//     day: '2-digit' as '2-digit',
+//     hour: '2-digit' as '2-digit',
+//     minute: '2-digit' as '2-digit',
+//     timeZone: 'Asia/Colombo',
+//   };
+//   const localDate = utcDate.toLocaleString('en-US', options);
+//   return localDate;
+// }
 
 /**
  * This function is for handle rows
@@ -464,8 +472,8 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
             <TableCell align='center' sx={{color: "red"}}>{row.number_of_referrals}</TableCell>
         }
         <TableCell align='center' >{Boolean(row.status) && JSON.parse(row.status).map((status: string) => <Chip label={`${status.toLocaleUpperCase()}`} sx={{fontWeight: 600}} />)}</TableCell>
-        <TableCell >{formatDateTime(row.register_at)}</TableCell>
-        <TableCell >{formatDateTime(row.updated_at)}</TableCell>
+        <TableCell >{row.register_at}</TableCell>
+        <TableCell >{row.updated_at}</TableCell>
         <TableCell >
           <div style={{display: 'flex'}}>
           <Tooltip title="Send Mail">

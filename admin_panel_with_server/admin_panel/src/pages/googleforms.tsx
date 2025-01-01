@@ -6,11 +6,12 @@ import EditGoogleForm from '../components/editGoogleForm';
 
 import { Message, GoogleForm } from '../states/type';
 import baseAPI from '../states/api';
+import { formatDateTime } from '../functions/helper';
 
 interface props{
     collectNotifications: (value: Message) => void;
 }
-interface Response {
+interface ResponseGoogleForm {
     message: string,
     body: GoogleForm[]
 }
@@ -29,6 +30,17 @@ interface editGoogleForm{
     title: string;
     color: string;
     whatsapp_group_link: string;
+}
+
+function formatGoogleFormDate(googleForm: GoogleForm): GoogleForm{
+    return {
+        ...googleForm,
+        created_at: formatDateTime(googleForm.created_at),
+        updated_at: formatDateTime(googleForm.updated_at)
+    }
+}
+function formatGoogleFormList(googleForms: GoogleForm[]): GoogleForm[]{
+    return googleForms.map(formatGoogleFormDate);
 }
 
 /**
@@ -51,8 +63,8 @@ const GoogleForms: React.FC<props> = ({collectNotifications}) => {
                 if(!response){
                     throw new Error("Failed to fetch Google Forms from the server");
                 }
-                const googleFormsArr = await response.json() as Response;
-                getGoogleForms(googleFormsArr.body? googleFormsArr.body : Loading);
+                const googleFormsArr = await response.json() as ResponseGoogleForm;
+                getGoogleForms(googleFormsArr.body? formatGoogleFormList(googleFormsArr.body) : Loading);
                 collectNotifications({message: "Fetching Google Forms From Server Success.", from: "Main Server", error: false});
             } catch (error){
                 console.log("Error Fetching Students From Server: ", error);

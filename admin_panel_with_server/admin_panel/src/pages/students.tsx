@@ -7,8 +7,9 @@ import CustomEmail from '../components/customeEmail';
 
 import { Message, Student } from '../states/type';
 import baseAPI from '../states/api';
+import { formatDateTime } from '../functions/helper';
 
-interface Response {
+export interface ResponseStudent {
     message: string,
     body: Student[]
 }
@@ -39,6 +40,26 @@ interface props{
     collectNotifications: (value: Message) => void;
 }
 
+/**
+ * This two function help to format students DateTime values
+ * 
+ * @function formatStudentDates(student) - format student DateTime values.
+ * @return {Student}
+ * @function formatStudentList(students) - format DateTime values from list of students.
+ * @returns {Stduent[]}
+ * @since 1.1.0
+ */
+function formatStudentDates(stduent: Student): Student{
+    return {
+        ...stduent,
+        register_at: formatDateTime(stduent.register_at),
+        created_at: formatDateTime(stduent.created_at),
+        updated_at: formatDateTime(stduent.updated_at),
+    }
+}
+function formatStudentList(students: Student[]): Student[]{
+    return students.map(formatStudentDates);
+}
 
 /**
  * This component handles the student funtions and data
@@ -69,8 +90,8 @@ const Students: React.FC<props> = ({collectNotifications}) => {
                 if(!response){
                     throw new Error("Failed to fetch students from the server");
                 }
-                const studentArr = await response.json() as Response;
-                getStudents(studentArr.body? studentArr.body : Loading);
+                const studentArr = await response.json() as ResponseStudent;
+                getStudents(studentArr.body? formatStudentList(studentArr.body) : Loading);
                 collectNotifications({message: "Fetching Students From Server Success.", from: "Main Server", error: false});
             } catch (error){
                 console.log("Error Fetching Students From Server: ", error);

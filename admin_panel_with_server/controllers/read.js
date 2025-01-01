@@ -87,7 +87,7 @@ class Read{
             [result] = await this.#db.promise().query(getStudentsSQL);
             return result[0].slug;
         } catch (error) {
-            const message = "Error While Getting Student From Database.\n" + error
+            const message = "Error While Getting Google Form Slug From Database.\n" + error
             console.log(message);
             result = message;
         }
