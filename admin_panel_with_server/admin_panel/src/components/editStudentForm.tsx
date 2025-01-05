@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, Fragment, useEffect } from "react";
 
 import AlertDialog from "./alertDialog";
 
@@ -14,12 +14,24 @@ interface EditStudent{
     full_name: string;
     email: string;
     wanumber: number | string;
-  }
+    googleFormId: number;
+}
 
 interface props{
     handleFormClose: () => void;
     collectNotifications: (notification: Notification) => void;
     editStudent: EditStudent;
+}
+
+interface googleFormTitle {
+    id: number;
+    title: string;
+}
+
+interface ResponseGoogleFormTitles {
+    message: string,
+    form: string,
+    body: googleFormTitle[]
 }
 
 /**
@@ -36,8 +48,12 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
     const [fullName, setFullName] = useState<string>(editStudent.full_name);
     const [email, setEmail] = useState<string>(editStudent.email);
     const [wanumber, setWaNumber] = useState<string | number>(editStudent.wanumber);
+    const [googleFormId, setgoogleFormId] = useState<number>(editStudent.googleFormId);
     const [isDialogOpen, getIsDialogOpen] = useState<boolean>(false);
-    const [formData, getFormData] = useState<URLSearchParams | null>(null);
+    const [formData, getFormData] = useState<FormData | null>(null);
+    const [googleFormTitleList, setGoogleFormTitleList] = useState<googleFormTitle[]>([]);
+
+    console.log(editStudent);
 
     const handleOnChange_fullName = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFullName(event.target.value);
@@ -49,18 +65,36 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
         setWaNumber(event.target.value);
     }
 
-    const submitForm = async(formData: URLSearchParams) => {
+    useEffect(()=>{
+        const fetchStudent = async () => {
+            try{
+                const response = await fetch(baseAPI + "/admin-panel/googleforms/titles",{
+                    method: 'GET'
+                });
+                if(!response){
+                    throw new Error("Failed to fetch Google Forms titles from the server");
+                }
+                const googleFormsArr = await response.json() as ResponseGoogleFormTitles;
+                if(Boolean(googleFormsArr.body.length)){
+                  setGoogleFormTitleList([...googleFormsArr.body]);
+                }
+                // getGoogleForms(googleFormsArr.body? formatGoogleFormList(googleFormsArr.body) : Loading);
+            } catch (error){
+                console.log("Error fetching Google forms titles from server: ", error);
+            }
+        }
+        fetchStudent();
+    },[]);
+
+    const submitForm = async(formData: FormData) => {
         const response = await fetch(baseAPI + "/admin-panel/student", {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: await formData.toString()
+            body: formData
         })
         if(response.ok) {
             const notification = await response.json() as Notification;
             collectNotifications(notification);
-            window.location.reload();
+            // window.location.reload();
         } else {
             console.log("Add Student didn't Success");
             collectNotifications({message: "Edit Student didn't Success", from: "Server", error: true});
@@ -71,13 +105,13 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
         event.preventDefault();
         getIsDialogOpen(true);
 
-        let formData = new URLSearchParams();
-        const inputs = event.currentTarget.getElementsByClassName("form-control");
+        let formData = new FormData(event.currentTarget as HTMLFormElement);
+        // const inputs = event.currentTarget.getElementsByClassName("form-control");
+        // for(let i=0; i<inputs.length; i++){
+        //     const inputElement = inputs[i] as HTMLInputElement;
+        //     formData.append(inputElement.name,inputElement.value);
+        // }
         formData.append("id", `${id}`);
-        for(let i=0; i<inputs.length; i++){
-            const inputElement = inputs[i] as HTMLInputElement;
-            formData.append(inputElement.name,inputElement.value);
-        }
         getFormData(formData);
     }
 
@@ -108,6 +142,12 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">WhatsApp Number</span>
                                 <input id="wanumber" type="tel" className="form-control" placeholder="94734567890" aria-label="Sizing example input" pattern="[0-9]{11}" aria-describedby="inputGroup-sizing-sm" maxLength={11} value={wanumber} name="wanumber" onChange={handleOnChange_wanumber} required/>
+                            </div>
+                            <div className="input-group input-group-sm mb-4">
+                                <span className="input-group-text" id="inputGroup-sizing-sm">Google Form *</span>
+                                <select className="form-select" aria-label="Default select example" name="googleForm" required>
+                                    {googleFormTitleList.length > 0 && googleFormTitleList.map((googleFormtitlevalue, index) => <option key={index} value={`${googleFormtitlevalue.id}`} selected={googleFormId === googleFormtitlevalue.id}>{googleFormtitlevalue.title}</option>)}
+                                </select>
                             </div>
                             <button type="submit" className="btn btn-danger">Submit</button>
                         </form>

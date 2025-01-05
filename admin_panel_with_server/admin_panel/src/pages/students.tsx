@@ -34,6 +34,7 @@ interface EditStudent{
     full_name: string;
     email: string;
     wanumber: number | string;
+    googleFormId: number;
 }
 
 interface props{

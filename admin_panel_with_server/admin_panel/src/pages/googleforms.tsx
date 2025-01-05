@@ -67,7 +67,7 @@ const GoogleForms: React.FC<props> = ({collectNotifications}) => {
                 getGoogleForms(googleFormsArr.body? formatGoogleFormList(googleFormsArr.body) : Loading);
                 collectNotifications({message: "Fetching Google Forms From Server Success.", from: "Main Server", error: false});
             } catch (error){
-                console.log("Error Fetching Students From Server: ", error);
+                console.log("Error Fetching Google Forms From Server: ", error);
                 collectNotifications({message: "Error Fetching Google Forms From Server.", from: "Main Server", error: true});
             }
         }

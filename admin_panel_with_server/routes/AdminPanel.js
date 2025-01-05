@@ -1,7 +1,9 @@
 const express = require('express');
 const path = require('path');
+const multer = require('multer');
 
 const router = express.Router();
+const upload = multer();
 
 const Read = require("../controllers/read");
 const Create = require("../controllers/create");
@@ -55,13 +57,14 @@ router.get('/students', async (req, res) => {
   await makeStudent();
   res.status(200).json({message: 'Get student success.', from: 'Main Server', body:students});
 });
-router.post('/student', async (req, res) => {
+router.post('/student', upload.none(), async (req, res) => {
   const result = await create.addStudent(req.body);
   // console.log(result);
   if (result === 'ER_DUP_ENTRY') return res.status(200).json({message: "Phone Number Duplicate Error!", from: 'Main Server', error: true});
   res.status(200).json({message: result, from: 'Main Server'});
 });
-router.put('/student', async (req, res) => {
+router.put('/student', upload.none(), async (req, res) => {
+  console.log(req.body);
   const result = await update.udpateStudent(req.body);
   // console.log(result);
   res.status(200).json({message: result, from: 'Main Server'});
@@ -86,6 +89,10 @@ router.post('/googleform', async (req, res) => {
 router.get('/googleforms', async (req, res) => {
   const googleForms = await read.getGoogleForms();
   res.status(200).json({message: 'Get google forms success.', from: 'Main Server', body:googleForms});
+});
+router.get('/googleforms/titles', async (req, res) => {
+  const googleForms = await read.getGoogleFormsTitles();
+  res.status(200).json({message: 'Get google forms titles success.', from: 'Main Server', body:googleForms});
 });
 router.get('/googleform/code', async (req, res) => {
   const {id} = req.query;

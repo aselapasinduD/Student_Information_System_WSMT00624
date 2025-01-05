@@ -1,10 +1,12 @@
 const db = require('./admin/database');
+const Read = require('./read');
 const fs = require("fs").promises;
 const path = require("path");
 const {v4: uuidv4} = require("uuid");
 
 const SendMail = require("./mail");
 const Mail = new SendMail();
+const read = new Read();
 
 const mailTemplatePath = "../resources/templates/emails";
 
@@ -24,18 +26,22 @@ class Create{
      * 
      * @param {Array} student - Array Of Valus (fullname, email, wanumber, referralwa)
      * @returns {string} - Success message or error message
+     * @version 1.1.0
      * @since 1.0.0
      */
     async addStudent(student){
-        const {fullname, email, wanumber, referralwa} = student;
+        const {fullname, email, wanumber, referralwa, googleForm} = student;
         let result;
         const datetime = new Date();
         const formattedDatetime = datetime.toISOString().replace(/T/, ' ').substr(0, 19);
         const referralWA = parseInt(referralwa);
+        // console.log(fullname);
         
         // Add Students to the Database
-        const addStudentSQL = `INSERT INTO student(full_name, email, wa_number, register_at) 
-        VALUES ('${fullname}', '${email}', ${parseInt(wanumber)}, '${formattedDatetime}')`;
+        const addStudentSQL = `INSERT INTO student(full_name, email, wa_number, register_at, google_form_id) 
+        VALUES ('${fullname}', '${email}', ${parseInt(wanumber)}, '${formattedDatetime}', ${parseInt(googleForm)})`;
+
+        // console.log(WhatsAppGroupLink);
 
         try {
             [result] = await this.#db.promise().query(addStudentSQL);
@@ -50,7 +56,6 @@ class Create{
             }
             const sendMail = await Mail.sendMail({to: result.insertId, subject: "Welcome to BinzO Platform!", emailcontent: emailcontent, ishtml: "html"});
             console.log("Send Mail:\n", sendMail);
-
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY'){
                 console.log("Phone Number Duplicate Error!:", error.sqlMessage);

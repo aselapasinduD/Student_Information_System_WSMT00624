@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 
 import AlertDialog from "./alertDialog";
 
@@ -11,26 +11,58 @@ interface props{
     collectNotifications: (notification: Message) => void;
 }
 
+interface googleFormTitle {
+    id: number;
+    title: string;
+}
+
+interface ResponseGoogleFormTitles {
+    message: string,
+    form: string,
+    body: googleFormTitle[]
+}
+
 /**
  * Add form component for students.
  * 
  * @param {functions} handleFormClose - Controle Form Close
  * @param {functions} collectNotifications - Notification Collect Function
  * @returns {JSX.Element}
+ * @version 1.1.0
  * @since 1.0.0
  */
 const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotifications}) =>{
-
     const [isDialogOpen, getIsDialogOpen] = useState<boolean>(false);
-    const [formData, getFormData] = useState<URLSearchParams | null>(null);
+    const [formData, getFormData] = useState<FormData | null>(null);
+    const [googleFormTitleList, setGoogleFormTitleList] = useState<googleFormTitle[]>([]);
 
-    const submitForm = async(formData: URLSearchParams) => {
+    useEffect(()=>{
+        const fetchStudent = async () => {
+            try{
+                const response = await fetch(baseAPI + "/admin-panel/googleforms/titles",{
+                    method: 'GET'
+                });
+                if(!response){
+                    throw new Error("Failed to fetch Google Forms titles from the server");
+                }
+                const googleFormsArr = await response.json() as ResponseGoogleFormTitles;
+                if(Boolean(googleFormsArr.body.length)){
+                  setGoogleFormTitleList([...googleFormsArr.body]);
+                }
+                // getGoogleForms(googleFormsArr.body? formatGoogleFormList(googleFormsArr.body) : Loading);
+            } catch (error){
+                console.log("Error fetching Google forms titles from server: ", error);
+            }
+        }
+        fetchStudent();
+    },[]);
+
+    const submitForm = async(formData: FormData) => {
+        const values = Object.fromEntries(formData);
+        console.log(values);
         const response = await fetch(baseAPI + "/admin-panel/student", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: formData.toString()
+            body: formData
         })
         if(response.ok) {
             const notification = await response.json() as Message;
@@ -46,12 +78,7 @@ const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotifications}
         event.preventDefault();
         getIsDialogOpen(true);
 
-        let formData = new URLSearchParams();
-        const inputs = event.currentTarget.getElementsByClassName("form-control");
-        for(let i=0; i<inputs.length; i++){
-            const inputElement = inputs[i] as HTMLInputElement;
-            formData.append(inputElement.name,inputElement.value);
-        }
+        let formData = new FormData(event.currentTarget as HTMLFormElement);
         getFormData(formData);
     }
 
@@ -63,7 +90,6 @@ const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotifications}
         await submitForm(formData);
     }
 
-
     return(
         <Fragment>
             <div className="form">
@@ -73,20 +99,27 @@ const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotifications}
                         <h4 className="heading">Add Student</h4>
                         <form onSubmit={handleSubmit}>
                             <div className="input-group input-group-sm mb-4">
-                                <span className="input-group-text" id="inputGroup-sizing-sm">Full Name</span>
+                                <span className="input-group-text" id="inputGroup-sizing-sm">Full Name *</span>
                                 <input id="fullname" type="name" className="form-control" placeholder="Full Name" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" name="fullname" required/>
                             </div>
                             <div className="input-group input-group-sm mb-4">
-                                <span className="input-group-text" id="inputGroup-sizing-sm">Email</span>
+                                <span className="input-group-text" id="inputGroup-sizing-sm">Email *</span>
                                 <input id="email" type="email" className="form-control" placeholder="example@domain.com" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" name="email" required/>
                             </div>
                             <div className="input-group input-group-sm mb-4">
-                                <span className="input-group-text" id="inputGroup-sizing-sm">WhatsApp Number</span>
+                                <span className="input-group-text" id="inputGroup-sizing-sm">WhatsApp Number *</span>
                                 <input id="wanumber" type="tel" className="form-control" placeholder="94734567890" aria-label="Sizing example input" pattern="[0-9]{11}" aria-describedby="inputGroup-sizing-sm" maxLength={11} name="wanumber" required/>
                             </div>
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">Referral WhatsApp</span>
                                 <input id="referralwa" type="tel" className="form-control" placeholder="94734567890" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" pattern="[0-9]{11}" maxLength={11} name="referralwa"/>
+                            </div>
+                            <div className="input-group input-group-sm mb-4">
+                                <span className="input-group-text" id="inputGroup-sizing-sm">Google Form *</span>
+                                <select className="form-select" aria-label="Default select example" name="googleForm" required>
+                                    <option selected>Open this select Google Form</option>
+                                    {googleFormTitleList.length > 0 && googleFormTitleList.map((googleFormtitlevalue, index) => <option key={index} value={`${googleFormtitlevalue.id}`}>{googleFormtitlevalue.title}</option>)}
+                                </select>
                             </div>
                             <button type="submit" className="btn btn-danger">Submit</button>
                         </form>

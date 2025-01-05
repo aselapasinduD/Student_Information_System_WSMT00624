@@ -1,4 +1,5 @@
 import React, {Fragment, useEffect, useRef, useState} from "react";
+import Chip from '@mui/material/Chip';
 
 import AlertDialog from "./alertDialog";
 
@@ -263,6 +264,10 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
                                     {!Boolean(imageURL) && <button type="button" className="btn btn-outline-secondary position-absolute" onClick={handleImageUploadButton}>Upload Image</button>}
                                     {Boolean(imageURL) && <img id="imagePreview" src={`${imageURL}`} alt="Image Preview" className="w-100" />}
                                 </div>
+                            </div>
+                            <div className="form-check form-switch mb-3">
+                                <input className="form-check-input" type="checkbox" id="enableCertificateEmailed" name="enableCertificateEmailed" />
+                                <label className="form-check-label" htmlFor="enableCertificateEmailed">Enable Student Status As The <Chip label="CM" sx={{fontWeight: 600}} /> - Certificate Emailed</label>
                             </div>
                             <button type="submit" className="btn btn-danger">Submit</button>
                         </form>

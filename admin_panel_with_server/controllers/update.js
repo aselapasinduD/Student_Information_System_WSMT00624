@@ -1,4 +1,7 @@
 const db = require('./admin/database');
+const Read = require('./read');
+
+const read = new Read();
 
 /**
  * Handle all the update funtions from CURD
@@ -12,7 +15,7 @@ class Update{
         this.#db = db.connection();
     }
     async udpateStudent(student){
-        const {id, fullname, email, wanumber, referralwa} = student;
+        const {id, fullname, email, wanumber, googleForm} = student;
         let result;
         const datetime = new Date();
         const formattedDatetime = datetime.toISOString().replace(/T/, ' ').substr(0, 19);
@@ -20,7 +23,7 @@ class Update{
         // console.log(`id: ${id}\nfullname: ${fullname}\nemail: ${email}\nwanumber: ${wanumber}\ndate: ${formattedDatetime}`);
 
         // Update Students to the Database
-        const updateStudentSQL = `UPDATE student SET full_name='${fullname}', email='${email}', wa_number=${parseInt(wanumber)} WHERE id=${id}`;
+        const updateStudentSQL = `UPDATE student SET full_name='${fullname}', email='${email}', wa_number=${parseInt(wanumber)}, google_form_id=${parseInt(googleForm)} WHERE id=${id}`;
 
         try {
             [result] = await this.#db.promise().query(updateStudentSQL);
@@ -40,8 +43,38 @@ class Update{
                 
             };
         }
-
         return "Update Student Is Success.";
+    }
+
+    async udpateStudentStatus(statuses){
+        const {id, status} = statuses;
+        let result;
+
+        // Update Student Status to the Database
+        const currentStatus = read.getStudentStatus(id);
+        console.log(currentStatus);
+        // const updateStudentSQL = `UPDATE student SET full_name='${fullname}', email='${email}', wa_number=${parseInt(wanumber)} WHERE id=${id}`;
+
+        // try {
+        //     [result] = await this.#db.promise().query(updateStudentSQL);
+        //     console.log('Update Student Is Success\n', result);
+        // } catch (error) {
+        //     if (error.code === 'ER_DUP_ENTRY'){
+        //         console.log("Phone Number Duplicate Error!: ", error.sqlMessage);
+        //         return "Phone Number Duplicate Error!";
+        //     } else {
+        //         if(error.sqlMessage){
+        //             console.log("Query Exicution Error!: ", error.sqlMessage);
+        //             return "Query Exicution Error!";
+        //         } else {
+        //             console.log("Exicution Error!: ", error);
+        //             return "Exicution Error!";
+        //         }
+                
+        //     };
+        // }
+
+        return "Update student status is success.";
     }
 
     /**

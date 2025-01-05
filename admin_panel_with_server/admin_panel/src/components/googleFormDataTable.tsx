@@ -60,6 +60,30 @@ function getComparator<Key extends keyof any>(
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
+interface FilterOptions {
+  id: keyof GoogleForm;
+  value: string | null;
+  options?: {below: boolean};
+}
+
+const initialFilterOptions: FilterOptions[] = [
+  {
+    id: "title",
+    value: null
+  },
+  {
+    id: "created_at",
+    value: null
+  }
+]
+
+function filter(rows: readonly GoogleForm[], options: FilterOptions[]) {
+  let filterdRows = rows;
+  filterdRows = filterdRows.filter((record) => record.title.toLowerCase().includes((options[0].value? options[0].value: "").toLowerCase()));
+  filterdRows = filterdRows.filter((record) => record.created_at.toLowerCase().includes((options[0].value? options[0].value: "").toLowerCase()));
+  return filterdRows;
+}
+
 interface ColumnNames {
   id: keyof GoogleForm;
   label: string;
@@ -177,23 +201,6 @@ function EnhancedTableHead(props: EnhancedTableProps) {
     </TableHead>
   );
 }
-
-interface FilterOptions {
-  id: keyof GoogleForm;
-  value: string | null;
-  options?: {below: boolean};
-}
-
-const initialFilterOptions: FilterOptions[] = [
-  {
-    id: "title",
-    value: null
-  },
-  {
-    id: "created_at",
-    value: null
-  }
-]
 
 interface EnhancedTableToolbarProps {
   numSelected: number;

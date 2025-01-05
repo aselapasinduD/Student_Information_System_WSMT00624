@@ -14,20 +14,16 @@ const imageProcess = new ImageProcess();
  */
 class SendMail {
     #transporter;
-    #hostMail = "mail.innentasolutions.com";
-    #mailUser = "admin@innentasolutions.com";
-    #mailPort = 587;
-    #mailPassword = "yMP@uUf{e7uP";
-    #secure = false;
-    #ccMail = "admin@innentasolutions.com";
+    #mailUser = process.env.MAIL_USERNAME;
+    #ccMail = process.env.MAIL_CC_ADDRESS;
     constructor(){
         this.#transporter = nodemailer.createTransport({
-            host: this.#hostMail,
-            port: 465,
-            secure: true,
+            host: process.env.MAIL_HOST,
+            port: process.env.MAIL_PORT,
+            secure: process.env.MAIL_SECURE,
             auth: {
                 user: this.#mailUser,
-                pass: this.#mailPassword
+                pass: process.env.MAIL_PASSWORD
             }
          });
     }
@@ -41,20 +37,28 @@ class SendMail {
      * @since 1.0.0
      */
     async sendMail(options){
-        const {to, subject, emailcontent, ishtml, imagePath, textposition, textsize, texttransform} = options;
+        const {to, subject, emailcontent, ishtml, imagePath, textposition, textsize, texttransform, enableCertificateEmailed} = options;
         let mailOptions;
 
-        let full_name, email, wa_number;
+        let full_name, email, wa_number, waGroupLink;
         try{
             [{full_name, email, wa_number}] = await read.getStudentById(to);
+            [{waGroupLink}] = await read.getGoogleFormWhatsappGroupLinkByStudent(to);
+
+            if(enableCertificateEmailed){
+                console.log("Certificate Emailed.");
+            }
         } catch {
             full_name = "";
             email = to;
             wa_number = "";
+            waGroupLink="";
         }
 
+        console.log(waGroupLink);
+
         if(ishtml === "html"){
-            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name).replace(/{{email}}/g, email).replace(/{{wa_number}}/g, wa_number).replace(/{{whatsapp_group_link}}/g,process.env.WHATSAPP_GROUP_LINK);
+            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name).replace(/{{email}}/g, email).replace(/{{wa_number}}/g, wa_number).replace(/{{whatsapp_group_link}}/g, waGroupLink );
 
             const cid = "imageid";
 
@@ -91,7 +95,7 @@ class SendMail {
                                             ];
             }
         } else {
-            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name).replace(/{{email}}/g, email).replace(/{{wa_number}}/g, wa_number).replace(/{{whatsapp_group_link}}/g,process.env.WHATSAPP_GROUP_LINK);
+            let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name).replace(/{{email}}/g, email).replace(/{{wa_number}}/g, wa_number).replace(/{{whatsapp_group_link}}/g, waGroupLink );
 
             mailOptions = {
                 from: `BinzO <${this.#mailUser}>`,

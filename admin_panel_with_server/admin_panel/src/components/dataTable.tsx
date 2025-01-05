@@ -1,4 +1,4 @@
-import React, {useState, Fragment, useEffect, useMemo} from 'react';
+import React, {useState, Fragment, useEffect, useMemo, useLayoutEffect} from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Collapse from '@mui/material/Collapse';
@@ -99,6 +99,10 @@ const initialFilterOptions: FilterOptions[] = [
   {
     id: "register_at",
     value: null
+  },
+  {
+    id: "google_form_id",
+    value: null
   }
 ]
 
@@ -107,11 +111,23 @@ function filter(rows: readonly Student[], options: FilterOptions[]) {
   filterdRows = filterdRows.filter((record) => record.full_name.toLowerCase().includes((options[1].value? options[1].value: "").toLowerCase()));
   if(options[0].value) filterdRows = filterdRows.filter((record) => options[0].options?.below === true?  record.number_of_referrals <= parseInt((options[0].value? options[0].value: "")): record.number_of_referrals === parseInt((options[0].value? options[0].value: "")));
   filterdRows = filterdRows.filter((record) => record.register_at.toLowerCase().includes((options[2].value? options[2].value: "").toLowerCase()));
+  filterdRows = filterdRows.filter((record) => options[3].value? record.google_form_id === parseInt((options[3].value? options[3].value: "")) : true);
   return filterdRows;
 }
 
 interface filterMenus extends MenuProps {
   setfilteroptions: (value: FilterOptions[]) => void;
+}
+
+interface googleFormTitle {
+  id: number;
+  title: string;
+}
+
+interface ResponseGoogleFormTitles {
+  message: string,
+  form: string,
+  body: googleFormTitle[]
 }
 
 const FilterMenus = (props: filterMenus) => {
@@ -120,6 +136,7 @@ const FilterMenus = (props: filterMenus) => {
   const [valueNumberOfReferrals, getValueNumberOfRegerrals] = useState<string>("");
   const [valueRegisterAt, getValueRegisterAt] = useState<string>("");
   const [isBelowChecked, setIsBelowChecked] = useState<boolean>(false);
+  const [googleFormTitleList, setGoogleFormTitleList] = useState<googleFormTitle[]>([]);
   const [googleFormTitle, setGoogleFormTitle] = useState<string>("");
 
   const handleIdChange = (value: string) => {
@@ -141,6 +158,27 @@ const FilterMenus = (props: filterMenus) => {
   }
 
   useEffect(()=>{
+    const fetchStudent = async () => {
+        try{
+            const response = await fetch(baseAPI + "/admin-panel/googleforms/titles",{
+                method: 'GET'
+            });
+            if(!response){
+                throw new Error("Failed to fetch Google Forms titles from the server");
+            }
+            const googleFormsArr = await response.json() as ResponseGoogleFormTitles;
+            if(Boolean(googleFormsArr.body.length)){
+              setGoogleFormTitleList([...googleFormsArr.body]);
+            }
+            // getGoogleForms(googleFormsArr.body? formatGoogleFormList(googleFormsArr.body) : Loading);
+        } catch (error){
+            console.log("Error fetching Google forms titles from server: ", error);
+        }
+    }
+    fetchStudent();
+  },[]);
+
+  useEffect(()=>{
     if(open){
       setfilteroptions(
         [
@@ -156,15 +194,15 @@ const FilterMenus = (props: filterMenus) => {
           {
             id: "register_at",
             value: valueRegisterAt === ""? null : valueRegisterAt
+          },
+          {
+            id: "google_form_id",
+            value: googleFormTitle === ""? null : googleFormTitle
           }
         ]
       );
     }
-  },[valueID, valueNumberOfReferrals, valueRegisterAt, isBelowChecked, open, setfilteroptions]);
-
-  const handleGoogleFormTitleChanges = (event: SelectChangeEvent) => {
-    setGoogleFormTitle(event.target.value as string);
-  };
+  },[valueID, valueNumberOfReferrals, valueRegisterAt, isBelowChecked, open, setfilteroptions, googleFormTitle, googleFormTitleList]);
 
   return (
       <Menu
@@ -209,14 +247,12 @@ const FilterMenus = (props: filterMenus) => {
               id="demo-simple-select"
               value={googleFormTitle}
               label="Google Form Title"
-              onChange={handleGoogleFormTitleChanges}
+              onChange={(e: SelectChangeEvent) => setGoogleFormTitle(e.target.value as string)}
             >
-              <MenuItem value="">
+              <MenuItem value={0}>
                 <em>None</em>
               </MenuItem>
-              <MenuItem value={10}>Ten</MenuItem>
-              <MenuItem value={20}>Twenty</MenuItem>
-              <MenuItem value={30}>Thirty</MenuItem>
+              {googleFormTitleList.length > 0 && googleFormTitleList.map((googleFormtitlevalue, index) => <MenuItem key={index} value={googleFormtitlevalue.id}>{googleFormtitlevalue.title}</MenuItem>)}
             </Select>
           </FormControl>
         </MenuItem>
@@ -387,6 +423,7 @@ interface EditStudent{
   full_name: string;
   email: string;
   wanumber: number | string;
+  googleFormId: number;
 }
 
 interface RowProps {
@@ -397,20 +434,6 @@ interface RowProps {
   handleCustormEmailFormOpen: (id: number[]) => void;
   handleEditFormOpen: (EditStudent: EditStudent) => void;
 }
-
-// const formatDateTime = (date: string) => {
-//   const utcDate = new Date(date); // Convert to local time zone
-//   const options = {
-//     year: 'numeric' as 'numeric', // Explicitly type the values
-//     month: 'short' as 'short',      // as per DateTimeFormatOptions
-//     day: '2-digit' as '2-digit',
-//     hour: '2-digit' as '2-digit',
-//     minute: '2-digit' as '2-digit',
-//     timeZone: 'Asia/Colombo',
-//   };
-//   const localDate = utcDate.toLocaleString('en-US', options);
-//   return localDate;
-// }
 
 /**
  * This function is for handle rows
@@ -429,7 +452,6 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
   const [open, setOpen] = useState(false);
   const isItemSelected = isSelected(row.id);
   const labelId = `checkbox-student-${index}`;
-  console.log(JSON.parse(row.status));
 
   return (
     <Fragment>
@@ -471,7 +493,7 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
             <TableCell align='center' sx={{color: "green"}}>{row.number_of_referrals}</TableCell> :
             <TableCell align='center' sx={{color: "red"}}>{row.number_of_referrals}</TableCell>
         }
-        <TableCell align='center' >{Boolean(row.status) && JSON.parse(row.status).map((status: string) => <Chip label={`${status.toLocaleUpperCase()}`} sx={{fontWeight: 600}} />)}</TableCell>
+        <TableCell align='center' >{Boolean(row.status) && JSON.parse(row.status).map((status: string, index: number) => <Chip key={index} label={`${status.toLocaleUpperCase()}`} sx={{fontWeight: 600}} />)}</TableCell>
         <TableCell >{row.register_at}</TableCell>
         <TableCell >{row.updated_at}</TableCell>
         <TableCell >
@@ -493,7 +515,7 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
         <TableCell >
           <Tooltip title="Edit Details">
             <IconButton
-              onClick={() => handleEditFormOpen({id: row.id, full_name: row.full_name, email: row.email, wanumber: row.wa_number})}
+              onClick={() => handleEditFormOpen({id: row.id, full_name: row.full_name, email: row.email, wanumber: row.wa_number, googleFormId: row.google_form_id})}
             >
               <EditIcon />
             </IconButton>

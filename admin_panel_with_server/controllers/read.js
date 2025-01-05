@@ -47,6 +47,22 @@ class Read{
         [result] = await this.#db.promise().query(query);
         console.log(result);
     }
+    /**
+     * Get student status function
+     * 
+     * @returns {object} - student Status
+     * @since 1.1.0
+     */
+    async getStudentStatus(id){
+        let result;
+        try{
+            const getStudentsSQL = `SELECT status FROM student WHERE id=${id}`;
+            [result] = await this.#db.promise().query(getStudentsSQL);
+            return result;
+        } catch (error) {
+            console.log("Error While Getting Student Status From Database.\n", error);
+        }
+    }
 
     /**
      * Google Form Read Functions.
@@ -61,7 +77,20 @@ class Read{
             [result] = await this.#db.promise().query(getStudentsSQL);
             return result;
         } catch (error) {
-            const message = "Error While Getting Student From Database.\n" + error
+            const message = "Error While Getting Google Forms From Database.\n" + error
+            console.log(message);
+            result = message;
+        }
+        return result;
+    }
+    async getGoogleFormsTitles(){
+        let result;
+        try{
+            const getStudentsSQL = `SELECT id, title FROM google_forms_manage`;
+            [result] = await this.#db.promise().query(getStudentsSQL);
+            return result;
+        } catch (error) {
+            const message = "Error While Getting Google Forms From Database.\n" + error
             console.log(message);
             result = message;
         }
@@ -86,6 +115,20 @@ class Read{
             const getStudentsSQL = `SELECT * FROM google_forms_manage WHERE id=${id}`;
             [result] = await this.#db.promise().query(getStudentsSQL);
             return result[0].slug;
+        } catch (error) {
+            const message = "Error While Getting Google Form Slug From Database.\n" + error
+            console.log(message);
+            result = message;
+        }
+        return result;
+    }
+    async getGoogleFormWhatsappGroupLinkByStudent(id){
+        let result;
+        try{
+            const getStudentsSQL = `SELECT g.whatsapp_group_link AS waGroupLink FROM student AS s JOIN google_forms_manage AS g ON g.id = s.google_form_id WHERE s.id=${id}`;
+            [result] = await this.#db.promise().query(getStudentsSQL);
+            console.log(result);
+            return result;
         } catch (error) {
             const message = "Error While Getting Google Form Slug From Database.\n" + error
             console.log(message);
