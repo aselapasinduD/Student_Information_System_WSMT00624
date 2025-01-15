@@ -21,6 +21,9 @@ const Loading = [{
     slug: "Loading...",
     color: "Loading...",
     whatsapp_group_link: "Loading...",
+    isReferralHas: false,
+    isAddressHas: false,
+    canUploadaReceipt: false,
     created_at: "Loading...",
     updated_at: "Loading...",
 }]
@@ -29,6 +32,9 @@ interface editGoogleForm{
     id: number;
     title: string;
     color: string;
+    isReferralHas: boolean;
+    isAddressHas: boolean;
+    canUploadaReceipt: boolean;
     whatsapp_group_link: string;
 }
 
@@ -57,6 +63,7 @@ const GoogleForms: React.FC<props> = ({collectNotifications}) => {
     useLayoutEffect(()=>{
         const fetchStudent = async () => {
             try{
+                getGoogleForms(Loading);
                 const response = await fetch(baseAPI + "/admin-panel/googleforms",{
                     method: 'GET'
                 });
@@ -64,7 +71,7 @@ const GoogleForms: React.FC<props> = ({collectNotifications}) => {
                     throw new Error("Failed to fetch Google Forms from the server");
                 }
                 const googleFormsArr = await response.json() as ResponseGoogleForm;
-                getGoogleForms(googleFormsArr.body? formatGoogleFormList(googleFormsArr.body) : Loading);
+                getGoogleForms(googleFormsArr.body? formatGoogleFormList(googleFormsArr.body) : []);
                 collectNotifications({message: "Fetching Google Forms From Server Success.", from: "Main Server", error: false});
             } catch (error){
                 console.log("Error Fetching Google Forms From Server: ", error);

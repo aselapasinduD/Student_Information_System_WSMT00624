@@ -47,7 +47,7 @@ class ImageProcess {
         });
 
         const imageBuffer = await image
-                                    .composite([{ input: Buffer.from(svgText), top: parseInt(location.y), left: parseInt(location.x - (textWidth/2)) }])
+                                    .composite([{ input: Buffer.from(svgText), top: parseInt(location.y) + 8, left: parseInt(location.x - (textWidth/2)) }])
                                     .toBuffer();
 
         return imageBuffer;

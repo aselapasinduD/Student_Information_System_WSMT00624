@@ -30,7 +30,7 @@ class Create{
      * @since 1.0.0
      */
     async addStudent(student){
-        const {fullname, email, wanumber, referralwa, googleForm} = student;
+        const {fullname, email, wanumber, address,referralwa, googleForm} = student;
         let result;
         const datetime = new Date();
         const formattedDatetime = datetime.toISOString().replace(/T/, ' ').substr(0, 19);
@@ -38,8 +38,8 @@ class Create{
         // console.log(fullname);
         
         // Add Students to the Database
-        const addStudentSQL = `INSERT INTO student(full_name, email, wa_number, register_at, google_form_id) 
-        VALUES ('${fullname}', '${email}', ${parseInt(wanumber)}, '${formattedDatetime}', ${parseInt(googleForm)})`;
+        const addStudentSQL = `INSERT INTO student(full_name, email, wa_number, address, register_at, google_form_id) 
+        VALUES ('${fullname}', '${email}', ${parseInt(wanumber)}, '${address}', '${formattedDatetime}', ${parseInt(googleForm)})`;
 
         // console.log(WhatsAppGroupLink);
 
@@ -88,31 +88,31 @@ class Create{
                 console.log("Can't match with ReferralWA number with the WANumber.");
             }
         }
-
         return "Adding Student Is Success.";
     }
 
     /**
      * This funtion is handle adding google form data to database.
      * 
-     * @param {Array} googleForm - Array Of Values (title, color, whatsappGroupLink)
+     * @param {Array} googleForm - Array Of Values (title, color, whatsappGroupLink, hasReferral, hasAddress)
      * @returns {string} - Success message or error message
      * @since 1.1.0
      */
     async addGoogleForm(googleForm){
-        const {title, color, whatsappGroupLink} = googleForm;
+        const {title, color, whatsappGroupLink, hasReferral, hasAddress, canUploadaReceipt} = googleForm;
         const slug = uuidv4();
         let result;
         
-        // Add Google Form to the Database
-        let addStudentSQL = `INSERT INTO google_forms_manage(title, slug${color ? ", color" : ""}${whatsappGroupLink ? ", whatsapp_group_link" : ""}) VALUES (?, ?${color ? ", ?" : ""}${whatsappGroupLink ? ", ?" : ""})`;
+        let addStudentSQL = `INSERT INTO google_forms_manage
+                            (title, slug${color ? ", color" : ""}${whatsappGroupLink ? ", whatsapp_group_link" : ""}${hasReferral ? ", isReferralHas" : ""}${hasAddress ? ", isAddressHas" : ""}${canUploadaReceipt ? ", canUploadaReceipt" : ""}) 
+                            VALUES (?, ?${color ? ", ?" : ""}${whatsappGroupLink ? ", ?" : ""}${hasReferral ? ", ?" : ""}${hasAddress ? ", ?" : ""}${canUploadaReceipt ? ", ?" : ""})`;
 
-        // Prepare the array of values for the placeholders
         const values = [title, slug];
         if (color) values.push(color);
         if (whatsappGroupLink) values.push(whatsappGroupLink);
-
-        // console.log(addStudentSQL);
+        if (hasReferral) values.push(true);
+        if (hasAddress) values.push(true);
+        if (canUploadaReceipt) values.push(true);
 
         try {
             [result] = await this.#db.promise().query(addStudentSQL, values);

@@ -6,11 +6,31 @@ const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMont
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'storage/images');
+        const ext = path.extname(file.originalname).toLowerCase();
+        const imageFileExtensions = ['.jpg', '.jpeg', '.png' ];
+        const dataBundleExtensions = ['.csv', '.xlsx', '.xlsb', '.xlsm'];
+
+        if (dataBundleExtensions.includes(ext)) {
+            cb(null, 'storage/data_bundles');
+        } else if(imageFileExtensions.includes(ext)) {
+            cb(null, 'storage/images');
+        } else {
+            cb(null, 'storage/junkFiles');
+        }
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = formattedDate + '-' + Math.round(Math.random() * 1E9);
-        cb(null, "certificate" + "-" + uniqueSuffix + path.extname(file.originalname));
+        const ext = path.extname(file.originalname).toLowerCase();
+        const imageFileExtensions = ['.jpg', '.jpeg', '.png' ];
+        const dataBundleExtensions = ['.csv', '.xlsx', '.xlsb', '.xlsm'];
+
+        if (dataBundleExtensions.includes(ext)) {
+            cb(null, "data-bundle" + "-" + uniqueSuffix + ext);
+        } else if(imageFileExtensions.includes(ext)) {
+            cb(null, "certificate" + "-" + uniqueSuffix + ext);
+        } else {
+            cb(null, "junk_files" + "-" + uniqueSuffix + ext);
+        }
     }
 });
 

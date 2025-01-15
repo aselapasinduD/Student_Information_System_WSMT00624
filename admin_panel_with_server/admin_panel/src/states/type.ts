@@ -9,14 +9,17 @@ export interface Student {
     email: string;
     number_of_mails: number;
     wa_number: number | string;
+    address: string;
     register_at: string;
-    created_at: string;
-    updated_at: string;
-    status: string;
+    status: string[];
     google_form_id: number
     number_of_referrals: number;
     referral_student: Student[];
     google_form_color?: string;
+    receiptURL: string;
+    isDetailsChecked: boolean;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface GoogleForm {
@@ -25,6 +28,9 @@ export interface GoogleForm {
     slug: string;
     color: string;
     whatsapp_group_link: string;
+    isReferralHas: boolean;
+    isAddressHas: boolean;
+    canUploadaReceipt: boolean;
     created_at: string;
     updated_at: string;
 }

@@ -49,7 +49,6 @@ const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotifications}
                 if(Boolean(googleFormsArr.body.length)){
                   setGoogleFormTitleList([...googleFormsArr.body]);
                 }
-                // getGoogleForms(googleFormsArr.body? formatGoogleFormList(googleFormsArr.body) : Loading);
             } catch (error){
                 console.log("Error fetching Google forms titles from server: ", error);
             }
@@ -100,23 +99,27 @@ const AddStudentForm: React.FC<props> = ({handleFormClose, collectNotifications}
                         <form onSubmit={handleSubmit}>
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">Full Name *</span>
-                                <input id="fullname" type="name" className="form-control" placeholder="Full Name" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" name="fullname" required/>
+                                <input id="fullname" type="name" className="form-control" placeholder="Full Name" aria-label="Full Name" aria-describedby="inputGroup-sizing-sm" name="fullname" maxLength={50} required/>
                             </div>
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">Email *</span>
-                                <input id="email" type="email" className="form-control" placeholder="example@domain.com" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" name="email" required/>
+                                <input id="email" type="email" className="form-control" placeholder="example@domain.com" aria-label="Email Address" aria-describedby="inputGroup-sizing-sm" name="email" required/>
                             </div>
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">WhatsApp Number *</span>
-                                <input id="wanumber" type="tel" className="form-control" placeholder="94734567890" aria-label="Sizing example input" pattern="[0-9]{11}" aria-describedby="inputGroup-sizing-sm" maxLength={11} name="wanumber" required/>
+                                <input id="wanumber" type="tel" className="form-control" placeholder="94734567890" aria-label="Whatapp Phone Number" pattern="[0-9]{11}" aria-describedby="inputGroup-sizing-sm" maxLength={11} name="wanumber" required/>
                             </div>
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">Referral WhatsApp</span>
-                                <input id="referralwa" type="tel" className="form-control" placeholder="94734567890" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" pattern="[0-9]{11}" maxLength={11} name="referralwa"/>
+                                <input id="referralwa" type="tel" className="form-control" placeholder="94734567890" aria-label="Referral Student Whatapp Number" aria-describedby="inputGroup-sizing-sm" pattern="[0-9]{11}" maxLength={11} name="referralwa"/>
+                            </div>
+                            <div className="input-group input-group-sm mb-4">
+                                <span className="input-group-text" id="inputGroup-sizing-sm">Address</span>
+                                <textarea id="address" className="form-control" placeholder="Address" aria-label="Home Address" aria-describedby="inputGroup-sizing-sm" name="address" maxLength={200}/>
                             </div>
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">Google Form *</span>
-                                <select className="form-select" aria-label="Default select example" name="googleForm" required>
+                                <select className="form-select" aria-label="Select the Google Form Here" name="googleForm" required>
                                     <option selected>Open this select Google Form</option>
                                     {googleFormTitleList.length > 0 && googleFormTitleList.map((googleFormtitlevalue, index) => <option key={index} value={`${googleFormtitlevalue.id}`}>{googleFormtitlevalue.title}</option>)}
                                 </select>

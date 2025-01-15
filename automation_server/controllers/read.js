@@ -14,7 +14,7 @@ class Read{
     async getGoogleFormFromSlug(slug){
         let result;
         try{
-            const getStudentsSQL = `SELECT id FROM google_forms_manage WHERE slug='${slug}'`;
+            const getStudentsSQL = `SELECT id, isAddressHas, isReferralHas, canUploadaReceipt  FROM google_forms_manage WHERE slug='${slug}'`;
             [result] = await this.#db.promise().query(getStudentsSQL);
             return { error: false, result: result};
         } catch (error) {

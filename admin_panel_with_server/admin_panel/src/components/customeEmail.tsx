@@ -2,7 +2,6 @@ import React, {Fragment, useEffect, useRef, useState} from "react";
 import Chip from '@mui/material/Chip';
 
 import AlertDialog from "./alertDialog";
-
 import baseAPI from '../states/api';
 
 interface Notification{
@@ -65,7 +64,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
                 })
                 if(response.ok) {
                     const notification = await response.json();
-                    console.log(notification);
+                    // console.log(notification);
                     if(notification.imagepath){
                         imagePath = notification.imagepath;
                     }
@@ -93,6 +92,9 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
         getProgress(0);
 
         let formData = new FormData(event.currentTarget as HTMLFormElement);
+
+        const values = Object.fromEntries(formData);
+        console.log(values.value);
         
         formData.append("ishtml", isHtmlContent);
         formData.append("textposition", JSON.stringify(placeholderTextPosition));

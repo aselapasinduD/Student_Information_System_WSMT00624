@@ -8,7 +8,7 @@ const session = require('express-session');
 const Auth = require('./controllers/admin/auth');
 const AuthLogin = require('./controllers/admin/loginAuth');
 const indexRouter = require('./routes/index');
-const adminPanelRouter = require('./routes/adminPanel');
+const adminPanelRouter = require('./routes/AdminPanel');
 const adminLoginRouter = require('./routes/adminLogin');
 const sendMailRouter = require('./routes/sendMail');
 

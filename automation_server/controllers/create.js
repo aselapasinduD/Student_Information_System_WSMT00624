@@ -21,7 +21,7 @@ class create{
     }
 
     async addStudent(student, GoogleFormSlug){
-        const {FullName, Email, WANumber, ReferralWA, RegisterAt} = student;
+        const {FullName, Email, WANumber, ReferralWA, RegisterAt, Address, ReceiptURL} = student;
         let result;
         const referralWA = parseInt(ReferralWA);
         const timestampfromatted = help.formatTimestamp(RegisterAt);
@@ -31,19 +31,36 @@ class create{
             return "Didn't find the google from the server.";
         }
         const GoogleFormID = GetGoogleForm.result[0].id;
-        
+        const ReferralHas = Boolean(GetGoogleForm.result[0].isReferralHas);
+        const AddressHas = Boolean(GetGoogleForm.result[0].isAddressHas);
+        const canUploadaReceipt = Boolean(GetGoogleForm.result[0].canUploadaReceipt);
+
         // Add Students to the Database
-        const addStudentSQL = `INSERT INTO student(full_name, email, wa_number, register_at, status, google_form_id) 
-        VALUES ('${FullName}', '${Email}', ${parseInt(WANumber)}, '${timestampfromatted}', '${JSON.stringify(["gf"])}', ${GoogleFormID})`;
+        const addStudentSQL = `INSERT INTO student
+                                (full_name, email, wa_number, register_at, status, google_form_id${AddressHas && Address? ", address" : ""}${canUploadaReceipt && ReceiptURL? ", receiptURL" : ""}) 
+                                VALUES (?, ?, ?, ?, ?, ?${AddressHas && Address? ", ?" : ""}${canUploadaReceipt && ReceiptURL? ", ?" : ""})`;
+
+        const duplicatePhoneNumberCheck = `SELECT EXISTS ( SELECT 1 FROM student WHERE google_form_id=? AND wa_number=? GROUP BY google_form_id, wa_number HAVING COUNT(*) > 0) AS has_duplicates`;
+
+        const values = [FullName, Email, parseInt(WANumber), timestampfromatted, JSON.stringify(["gf"]), GoogleFormID];
+        if(AddressHas && Address) values.push(Address);
+        if(canUploadaReceipt && ReceiptURL) values.push(ReceiptURL);
 
         try {
-            [result] = await this.#db.promise().query(addStudentSQL);
+            const [check_duplicates] = await this.#db.promise().query(duplicatePhoneNumberCheck, [GoogleFormID, WANumber]);
+            if (Boolean(check_duplicates[0].has_duplicates)){
+                const error = new Error('ER_DUP_ENTRY');
+                error.code = 'ER_DUP_ENTRY';
+                throw error;
+            }
+            
+            [result] = await this.#db.promise().query(addStudentSQL, values);
             console.log('Student Registration is success.\n', result.insertId);
             const sendMail = await mainServer.sendMail(result.insertId, "Success_Registration");
             console.log("Send Mail:\n", sendMail);
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY'){
-                console.log("Phone Number Duplicate Error!:", error.sqlMessage);
+                console.log("Phone Number Duplicate Error!");
                 const sendMail = await mainServer.sendMail(Email, "ER_DUP_ENTRY");
                 console.log("Send Mail:\n", sendMail);
                 return "Phone Number Duplicate Error!";
@@ -63,7 +80,7 @@ class create{
             };
         }
 
-        if(referralWA) {
+        if(referralWA && ReferralHas) {
             const studentId = result.insertId;
             let referralId;
 

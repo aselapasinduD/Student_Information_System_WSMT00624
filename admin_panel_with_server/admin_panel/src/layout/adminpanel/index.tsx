@@ -78,11 +78,11 @@ const AdminPanelLayout: React.FC<Props> = ({ notification }) => {
                 )}
             </div>
             <h4>Admin Panel 1.0v</h4>
-            {/* <div className='dash-panel'>
-                <DashBox title='Students' numbers={students? students.length: 0} backgroundColor='#f8b34a'/>
-                <DashBox title='Eligible Students' numbers={students? students.filter((n) => n.number_of_referrals >= 2).length: 0} allStudents={students? students.length: 0} backgroundColor='#58ce5c'/>
-                <DashBox title='Ineligible Students' numbers={students? students.filter((n) => n.number_of_referrals < 2).length: 0} allStudents={students? students.length: 0} backgroundColor='#fd6770'/>
-            </div> */}
+            <div className='dash-panel mb-2'>
+                <DashBox title='Students' numbers={45} backgroundColor='#f8b34a'/>
+                <DashBox title='Eligible Students' numbers={20} allStudents={45} backgroundColor='#58ce5c'/>
+                <DashBox title='Ineligible Students' numbers={25} allStudents={45} backgroundColor='#fd6770'/>
+            </div>
             <nav>
                 <div className="nav nav-tabs" id="nav-tab" role="tablist">
                     <button className={`nav-link ${window.location.pathname.split('/')[2] === "student" ? "active" : window.location.pathname.split('/')[2] === undefined? "active" : ""}`} id="nav-students-tab" type="button" role="tab" onClick={handleOpenTab}>Students</button>

@@ -56,7 +56,7 @@ class Read{
     async getStudentStatus(id){
         let result;
         try{
-            const getStudentsSQL = `SELECT status FROM student WHERE id=${id}`;
+            const getStudentsSQL = `SELECT status AS currentStatus FROM student WHERE id=${id}`;
             [result] = await this.#db.promise().query(getStudentsSQL);
             return result;
         } catch (error) {
@@ -127,7 +127,6 @@ class Read{
         try{
             const getStudentsSQL = `SELECT g.whatsapp_group_link AS waGroupLink FROM student AS s JOIN google_forms_manage AS g ON g.id = s.google_form_id WHERE s.id=${id}`;
             [result] = await this.#db.promise().query(getStudentsSQL);
-            console.log(result);
             return result;
         } catch (error) {
             const message = "Error While Getting Google Form Slug From Database.\n" + error

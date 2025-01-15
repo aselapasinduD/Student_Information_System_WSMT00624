@@ -16,8 +16,7 @@
   margin-top: 20vh;
 }
 .admin-panel{
-  margin: 0px 40px;
-  margin-top: 20px;
+  margin: 20px 40px;
 }
 
 .dash-panel{
@@ -56,7 +55,7 @@
   max-width: 100vw;
   max-height: 100vh;
   backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  --webkit-backdrop-filter: blur(3px);
 }
 .form > div{
   margin: 12px;
@@ -77,6 +76,10 @@
 }
 .form-container .heading{
   margin-bottom: 30px;
+}
+.form-container.import-bundles{
+  padding-left: 18px;
+  padding-right: 12px;
 }
 .textarea-header{
   display: flex;
@@ -111,6 +114,10 @@
 ._404page{
   text-align: center;
   margin-top: calc(50vh - (2.5rem / 2));
+}
+
+.MuiTableCell-head{
+  font-weight: 600 !important;
 }
 
 

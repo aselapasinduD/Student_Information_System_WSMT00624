@@ -18,8 +18,8 @@ routes.get("/:access_key", (req,res,next) => {
 routes.post("/:access_key/:google_form/student", async (req, res, next) => {
     const AccessKey = req.params.access_key;
     const GoogleFormSlug = req.params.google_form;
-    console.log(req.body.student);
-    console.log(GoogleFormSlug);
+    // console.log(req.body.student);
+    // console.log(GoogleFormSlug);
 
     if (process.env.ACCESS_KEY !== AccessKey){
         res.status(403).send("You Don't Have Access for this Api.");

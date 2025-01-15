@@ -4,7 +4,7 @@ const Auth = (req,res,next) => {
         console.log(req.headers);
         const {systemuser, password} = req.headers;
         if(systemuser === process.env.SYSTEM_USER && password === process.env.PASSWORD){
-            console.log("Authentication Is Successful");
+            // console.log("Authentication Is Successful");
             req.headers.auth = true;
             next();
         } else {

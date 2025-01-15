@@ -2,9 +2,11 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 
 const Read = require("./read");
+const Update = require("../controllers/update");
 const ImageProcess = require("./imageProcess");
 
 const read = new Read();
+const update = new Update();
 const imageProcess = new ImageProcess();
 
 /**
@@ -46,7 +48,10 @@ class SendMail {
             [{waGroupLink}] = await read.getGoogleFormWhatsappGroupLinkByStudent(to);
 
             if(enableCertificateEmailed){
-                console.log("Certificate Emailed.");
+                if(enableCertificateEmailed === "on"){
+                    const result = await update.udpateStudentStatus({id: to, status: "cm"});
+                    // console.log(result);
+                }
             }
         } catch {
             full_name = "";
@@ -54,8 +59,6 @@ class SendMail {
             wa_number = "";
             waGroupLink="";
         }
-
-        console.log(waGroupLink);
 
         if(ishtml === "html"){
             let newEmailContent = emailcontent.replace(/{{full_name}}/g, full_name).replace(/{{email}}/g, email).replace(/{{wa_number}}/g, wa_number).replace(/{{whatsapp_group_link}}/g, waGroupLink );

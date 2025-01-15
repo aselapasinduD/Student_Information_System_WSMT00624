@@ -14,7 +14,9 @@ interface EditStudent{
     full_name: string;
     email: string;
     wanumber: number | string;
+    address: string;
     googleFormId: number;
+    receiptURL: string;
 }
 
 interface props{
@@ -41,6 +43,7 @@ interface ResponseGoogleFormTitles {
  * @param {function} collectNotifications - Notification Collect Function
  * @param {array} editStudent - Array of Student Details
  * @returns {JSX.Element}
+ * @version 1.1.0
  * @since 1.0.0
  */
 const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications, editStudent}) =>{
@@ -48,7 +51,9 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
     const [fullName, setFullName] = useState<string>(editStudent.full_name);
     const [email, setEmail] = useState<string>(editStudent.email);
     const [wanumber, setWaNumber] = useState<string | number>(editStudent.wanumber);
+    const [address, setAddress] = useState<string>(editStudent.address);
     const [googleFormId, setgoogleFormId] = useState<number>(editStudent.googleFormId);
+    const [receiptURL, setReceiptURL] = useState<string>(editStudent.receiptURL);
     const [isDialogOpen, getIsDialogOpen] = useState<boolean>(false);
     const [formData, getFormData] = useState<FormData | null>(null);
     const [googleFormTitleList, setGoogleFormTitleList] = useState<googleFormTitle[]>([]);
@@ -63,6 +68,9 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
     }
     const handleOnChange_wanumber = (event: React.ChangeEvent<HTMLInputElement>) => {
         setWaNumber(event.target.value);
+    }
+    const handleOnChange_address = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setAddress(event.target.value);
     }
 
     useEffect(()=>{
@@ -94,7 +102,7 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
         if(response.ok) {
             const notification = await response.json() as Notification;
             collectNotifications(notification);
-            // window.location.reload();
+            window.location.reload();
         } else {
             console.log("Add Student didn't Success");
             collectNotifications({message: "Edit Student didn't Success", from: "Server", error: true});
@@ -106,11 +114,6 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
         getIsDialogOpen(true);
 
         let formData = new FormData(event.currentTarget as HTMLFormElement);
-        // const inputs = event.currentTarget.getElementsByClassName("form-control");
-        // for(let i=0; i<inputs.length; i++){
-        //     const inputElement = inputs[i] as HTMLInputElement;
-        //     formData.append(inputElement.name,inputElement.value);
-        // }
         formData.append("id", `${id}`);
         getFormData(formData);
     }
@@ -133,21 +136,29 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
                         <form onSubmit={handleSubmit}>
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">Full Name</span>
-                                <input type="text" className="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" value={fullName} onChange={handleOnChange_fullName} name="fullname"/>
+                                <input type="text" className="form-control" aria-label="Full Name" aria-describedby="inputGroup-sizing-sm" value={fullName} onChange={handleOnChange_fullName} maxLength={50} name="fullname" required/>
                             </div>
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">Email</span>
-                                <input type="email" className="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" value={email} onChange={handleOnChange_email} name="email"/>
+                                <input type="email" className="form-control" aria-label="Email" aria-describedby="inputGroup-sizing-sm" value={email} onChange={handleOnChange_email} name="email" required/>
                             </div>
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">WhatsApp Number</span>
-                                <input id="wanumber" type="tel" className="form-control" placeholder="94734567890" aria-label="Sizing example input" pattern="[0-9]{11}" aria-describedby="inputGroup-sizing-sm" maxLength={11} value={wanumber} name="wanumber" onChange={handleOnChange_wanumber} required/>
+                                <input id="wanumber" type="tel" className="form-control" placeholder="94734567890" aria-label="WhatsApp Number" pattern="[0-9]{11}" aria-describedby="inputGroup-sizing-sm" maxLength={11} value={wanumber} name="wanumber" onChange={handleOnChange_wanumber} required/>
+                            </div>
+                            <div className="input-group input-group-sm mb-4">
+                                <span className="input-group-text" id="inputGroup-sizing-sm">Address</span>
+                                <textarea id="address" className="form-control" placeholder="Address" aria-label="Home Address" aria-describedby="inputGroup-sizing-sm" value={address} onChange={handleOnChange_address} name="address" maxLength={200}/>
                             </div>
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">Google Form *</span>
-                                <select className="form-select" aria-label="Default select example" name="googleForm" required>
+                                <select className="form-select" aria-label="Google Form" name="googleForm" required>
                                     {googleFormTitleList.length > 0 && googleFormTitleList.map((googleFormtitlevalue, index) => <option key={index} value={`${googleFormtitlevalue.id}`} selected={googleFormId === googleFormtitlevalue.id}>{googleFormtitlevalue.title}</option>)}
                                 </select>
+                            </div>
+                            <div className="input-group input-group-sm mb-3">
+                                <span className="input-group-text" id="inputGroup-sizing-sm">Receipt Link</span>
+                                <input id="receiptLink" type="url" className="form-control" placeholder="Receipt Link" value={receiptURL} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setReceiptURL(event.target.value)} aria-label="Receipt Link" aria-describedby="inputGroup-sizing-sm" name="receiptLink" maxLength={100}/>
                             </div>
                             <button type="submit" className="btn btn-danger">Submit</button>
                         </form>

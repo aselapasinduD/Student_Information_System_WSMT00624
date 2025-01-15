@@ -9,6 +9,9 @@ interface editGoogleForm{
     id: number;
     title: string;
     color: string;
+    isReferralHas: boolean;
+    isAddressHas: boolean;
+    canUploadaReceipt: boolean;
     whatsapp_group_link: string;
 }
 
@@ -61,8 +64,11 @@ const EditGoogleForm: React.FC<props> = ({handleFormClose, collectNotifications,
     const [title, setTitle] = useState<string>(editGoogleForm.title);
     const [color, setColor] = useState<string>(editGoogleForm.color);
     const [whatsapp_group_link, setWhatsappGroupLink] = useState<string | number>(editGoogleForm.whatsapp_group_link);
+    const [isReferralHas, setReferralHas] = useState<boolean>(editGoogleForm.isReferralHas);
+    const [isAddressHas, setAddressHas] = useState<boolean>(editGoogleForm.isAddressHas);
+    const [canUploadaReceipt, setCanUploadaReceipt] = useState<boolean>(editGoogleForm.canUploadaReceipt);
     const [isDialogOpen, getIsDialogOpen] = useState<boolean>(false);
-    const [formData, getFormData] = useState<URLSearchParams | null>(null);
+    const [formData, getFormData] = useState<FormData | null>(null);
 
     const handleOnChange_title = (event: React.ChangeEvent<HTMLInputElement>) => {
         setTitle(event.target.value);
@@ -74,14 +80,10 @@ const EditGoogleForm: React.FC<props> = ({handleFormClose, collectNotifications,
         setWhatsappGroupLink(event.target.value);
     }
 
-    const submitForm = async(formData: URLSearchParams) => {
-        console.log(formData.getAll(""));
+    const submitForm = async(formData: FormData) => {
         const response = await fetch(baseAPI + "/admin-panel/googleform", {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: await formData.toString()
+            body: formData
         })
         if(response.ok) {
             const notification = await response.json() as Message;
@@ -97,13 +99,8 @@ const EditGoogleForm: React.FC<props> = ({handleFormClose, collectNotifications,
         event.preventDefault();
         getIsDialogOpen(true);
 
-        let formData = new URLSearchParams();
-        const inputs = event.currentTarget.getElementsByClassName("form-control");
+        let formData = new FormData(event.currentTarget as HTMLFormElement);
         formData.append("id", `${id}`);
-        for(let i=0; i<inputs.length; i++){
-            const inputElement = inputs[i] as HTMLInputElement;
-            formData.append(inputElement.name,inputElement.value);
-        }
         getFormData(formData);
     }
 
@@ -121,7 +118,7 @@ const EditGoogleForm: React.FC<props> = ({handleFormClose, collectNotifications,
                 <div>
                     <button type="button" className="btn-close" onClick={handleFormClose} aria-label="Close"></button>
                     <div className="form-container">
-                        <h4 className="heading">Edit Student Form</h4>
+                        <h4 className="heading">Edit Google Form</h4>
                         <form onSubmit={handleSubmit}>
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">Title</span>
@@ -137,6 +134,26 @@ const EditGoogleForm: React.FC<props> = ({handleFormClose, collectNotifications,
                             <div className="input-group input-group-sm mb-4">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">WhatsApp Group Link</span>
                                 <input id="whatsappGroupLink" type="url" className="form-control" placeholder="Whatsapp Group Link" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" value={whatsapp_group_link ?? ""} name="whatsappGroupLink" onChange={handleOnChange_whatsapp_group_link}/>
+                            </div>
+                            <div className="d-flex gap-4 mb-4">
+                                <div className="form-check d-flex align-items-center gap-2">
+                                    <input className="form-check-input" type="checkbox" checked={isReferralHas} onChange={() => setReferralHas(!isReferralHas)} name="hasReferral" id="isRegisterDateToday" />
+                                    <label className="form-check-label" style={{ width: "max-content" }} htmlFor="isRegisterDateToday">
+                                        Has Referrald
+                                    </label>
+                                </div>
+                                <div className="form-check d-flex align-items-center gap-2">
+                                    <input className="form-check-input" type="checkbox" checked={isAddressHas} onChange={() => setAddressHas(!isAddressHas)} name="hasAddress" id="isRegisterDateToday" />
+                                    <label className="form-check-label" style={{ width: "max-content" }} htmlFor="isRegisterDateToday">
+                                        Has Address
+                                    </label>
+                                </div>
+                                <div className="form-check d-flex align-items-center gap-2">
+                                    <input className="form-check-input" type="checkbox" checked={canUploadaReceipt} onChange={() => setCanUploadaReceipt(!canUploadaReceipt)} name="canUploadaReceipt" id="canUploadaReceipt" />
+                                    <label className="form-check-label" style={{ width: "max-content" }} htmlFor="canUploadaReceipt">
+                                        Can Upload a Receipt
+                                    </label>
+                                </div>
                             </div>
                             <button type="submit" className="btn btn-danger">Submit</button>
                         </form>

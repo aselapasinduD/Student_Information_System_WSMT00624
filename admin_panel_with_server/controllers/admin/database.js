@@ -40,6 +40,10 @@ const db_connection = () => {
         const alterStudentTable = `ALTER TABLE student
             ADD COLUMN IF NOT EXISTS google_form_id INT NULL,
             ADD COLUMN IF NOT EXISTS status JSON NULL,
+            ADD COLUMN IF NOT EXISTS address VARCHAR(200) NULL,
+            ADD COLUMN IF NOT EXISTS receiptURL VARCHAR(100) NULL,
+            ADD COLUMN IF NOT EXISTS isDetailsChecked BOOLEAN NULL,
+            MODIFY COLUMN wa_number BIGINT(12) UNIQUE NOT NULL,
             ADD CONSTRAINT fk_google_form_id FOREIGN KEY (google_form_id) REFERENCES google_forms_manage(id)
         `;
 
@@ -83,6 +87,9 @@ const db_connection = () => {
             slug VARCHAR(36) NOT NULL,
             color VARCHAR(7) NULL,
             whatsapp_group_link VARCHAR(100) NULL,
+            isReferralHas BOOLEAN NULL DEFAULT FALSE,
+            isAddressHas BOOLEAN NULL DEFAULT FALSE,
+            canUploadaReceipt BOOLEAN NULL DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
@@ -157,6 +164,24 @@ const db_connection = () => {
                 console.log('Error During Altering student Table.\n', error);
             }
         });
+
+        // db.query("ALTER TABLE student DROP INDEX wa_number;", (err, result) => {
+        //     try{
+        //         if (err) throw err;
+        //         console.log('Student Table Altered.\n', result);
+        //     } catch (error) {
+        //         console.log('Error During Altering student Table.\n', error);
+        //     }
+        // });
+
+        // db.query("ALTER TABLE student MODIFY COLUMN wa_number BIGINT(12) UNIQUE NOT NULL;", (err, result) => {
+        //     try{
+        //         if (err) throw err;
+        //         console.log('Student Table Altered.\n', result);
+        //     } catch (error) {
+        //         console.log('Error During Altering student Table.\n', error);
+        //     }
+        // });
 
         const superAdmin = new SuperAdmin(process.env.SUPER_ADMIN_USERNAME, process.env.SUPER_ADMIN_PASSWORD);
         superAdmin.initSuperAdmin(db);
