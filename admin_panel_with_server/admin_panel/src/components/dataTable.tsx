@@ -151,7 +151,6 @@ function filter(rows: readonly Student[], options: FilterOptions[]) {
   });
   // Fillter Address
   filterdRows = filterdRows.filter((record) => {
-    console.log(options[5].options?.NoN);
     if(options[5].options?.NoN) return Boolean(!record.address);
     if(record.address) return record.address.toLowerCase().includes((options[5].value? options[5].value: "").toLowerCase());
     if(options[5].value) return false;

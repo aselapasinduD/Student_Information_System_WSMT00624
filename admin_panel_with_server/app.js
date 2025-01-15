@@ -33,8 +33,8 @@ app.use(express.static(path.join(__dirname, 'admin_panel/build/')));
 
 app.use('/', indexRouter);
 // Admin Panel
-// app.use('/admin-panel', Auth, adminPanelRouter);
-app.use('/admin-panel', adminPanelRouter);
+app.use('/admin-panel', Auth, adminPanelRouter);
+// app.use('/admin-panel', adminPanelRouter);
 
 // Supre Admin Login
 app.use('/admin-login', AuthLogin, adminLoginRouter);
