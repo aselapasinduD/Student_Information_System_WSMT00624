@@ -17,7 +17,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 import { Message } from "../states/type";
-import baseAPI, { socket, socketID } from "../states/api";
+import baseAPI, { socket } from "../states/api";
 
 interface props {
     handleFormClose: () => void;

@@ -5,7 +5,6 @@ import DashBox from '../../components/dashPanelBox';
 import Notifications from '../../components/notifications';
 
 import { Notification, Message } from "../../states/type";
-import baseAPI from '../../states/api';
 
 interface Props {
     notification: Message | null;

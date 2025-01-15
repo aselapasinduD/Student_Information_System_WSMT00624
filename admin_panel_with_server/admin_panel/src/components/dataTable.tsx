@@ -51,7 +51,6 @@ import AlertDialog from "./alertDialog";
 
 import { Student, Message } from '../states/type';
 import baseAPI from '../states/api';
-import { Button } from '@mui/material';
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -152,6 +151,8 @@ function filter(rows: readonly Student[], options: FilterOptions[]) {
   });
   // Fillter Address
   filterdRows = filterdRows.filter((record) => {
+    console.log(options[5].options?.NoN);
+    if(options[5].options?.NoN) return Boolean(!record.address);
     if(record.address) return record.address.toLowerCase().includes((options[5].value? options[5].value: "").toLowerCase());
     if(options[5].value) return false;
     return true
@@ -291,7 +292,7 @@ const FilterMenus = (props: filterMenus) => {
         ]
       );
     }
-  },[valueFullName, valueNumberOfReferrals, valueRegisterAt, isBelowChecked, open, setfilteroptions, googleFormTitle, googleFormTitleList, status, valueAddress]);
+  },[valueFullName, valueNumberOfReferrals, valueRegisterAt, isBelowChecked, open, setfilteroptions, googleFormTitle, googleFormTitleList, status, valueAddress, isNonAddressChecked]);
 
   return (
       <Menu
@@ -323,11 +324,11 @@ const FilterMenus = (props: filterMenus) => {
         </MenuItem>
         <MenuItem onKeyDown={(e) => e.stopPropagation()}>
           <TextField name="address"  hiddenLabel label="Address" inputProps={{value: valueAddress}} type='text' size='small' margin='none' sx={{mr: 1, width: "100%"}} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleAddressChange(e.target.value)}/>
-          <FormControlLabel control={<Checkbox onChange={(e)=>setIsNonAddressChecked(e.target.checked)} />} label="NoN" />
+          <FormControlLabel control={<Checkbox checked={isNonAddressChecked} onChange={(e)=>setIsNonAddressChecked(e.target.checked)} />} label="NoN" />
         </MenuItem>
         <MenuItem onKeyDown={(e) => e.stopPropagation()}>
           <TextField name='number_of_referrals' placeholder='0' inputProps={{pattern: "[0-9]{11}", type: "number", value: valueNumberOfReferrals}} hiddenLabel label="Referrals" size='small' margin='none' onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleNumberOfReferralsChange(e.target.value)} sx={{ mr: 1, width: '15ch' }}/>
-          <FormControlLabel control={<Checkbox onChange={(e)=>setIsBelowChecked(e.target.checked)} />} label="Below" />
+          <FormControlLabel control={<Checkbox checked={isBelowChecked} onChange={(e)=>setIsBelowChecked(e.target.checked)} />} label="Below" />
         </MenuItem>
         <MenuItem onKeyDown={(e) => e.stopPropagation()}>
           <TextField name='register_at' hiddenLabel label="Register At" placeholder='Jan 01, 2025, 00:00 PM' size='small' margin='none' sx={{width: "100%"}} inputProps={{pattern: "[0-9]{11}", value: valueRegisterAt}} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleRegisterAtChange(e.target.value)}/>
@@ -902,7 +903,7 @@ const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFo
 
     useEffect(() => {
       getRowCount(filteredRows.length);
-    }, [visibleRows]);
+    }, [visibleRows, filteredRows.length]);
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (event.target.checked) {
