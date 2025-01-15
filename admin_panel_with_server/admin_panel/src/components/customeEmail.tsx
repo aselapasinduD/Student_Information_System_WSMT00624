@@ -39,7 +39,6 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
     const [viewFontSize, setViewFontSize] = useState<number>(placeholderSize);
     const [placeholderText, setPlaceholderText] = useState<string>("Placeholder Text");
     const [placeholderTextPosition, setPlaceholderTextPosition] = useState<position>({x: 0, y: 0});
-    const [isPlaceholderTextDraggable, makePlaceholderTextDraggable] = useState<boolean>(false);
     const [originalImageSize, setOriginalImageSize] = useState<position>({x: 0, y: 0});
     const [textTransform, setTextTransform] = useState<string>("Aa");
 
@@ -50,7 +49,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
             try{
                 numberOfIds--;
                 formData.set("id", `${id[numberOfIds]}`);
-                if(imagePath != ""){
+                if(imagePath !== ""){
                     formData.delete('imageFile');
                     if(formData.has('imagepath')){
                         formData.set('imagepath', imagePath);
@@ -99,7 +98,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
         formData.append("ishtml", isHtmlContent);
         formData.append("textposition", JSON.stringify(placeholderTextPosition));
         formData.append("textsize", placeholderSize.toString());
-        formData.append('texttransform', textTransform == "Aa"? "capitalize" : textTransform == "AA"? "uppercase" : "lowercase");
+        formData.append('texttransform', textTransform === "Aa"? "capitalize" : textTransform === "AA"? "uppercase" : "lowercase");
         getFormData(formData);
     }
 
@@ -147,7 +146,6 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
     const handleDragPlaceholder = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
         if(textPlaceholderRef && textPlaceholderRef.current){
-            makePlaceholderTextDraggable(true);
             const textPlaceholderParent = textPlaceholderRef.current.parentElement!;
             const textPlaceholder = textPlaceholderRef.current;
             const textPlaceholderParentRect = textPlaceholderParent.getBoundingClientRect();
@@ -187,7 +185,6 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
             }
 
             const mouseUpHandler = () => {
-                makePlaceholderTextDraggable(false);
                 document.removeEventListener("mousemove", mouseMoveHandler);
                 document.removeEventListener("mouseup", mouseUpHandler);
                 console.log(placeholderTextPosition);
@@ -196,10 +193,6 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
             document.addEventListener("mousemove", mouseMoveHandler);
             document.addEventListener("mouseup", mouseUpHandler);
         }
-    }
-
-    const handleDropPlaceholder = () => {
-        makePlaceholderTextDraggable(false);
     }
 
     useEffect(() => {
@@ -214,7 +207,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
             console.log(scale);
             setViewFontSize(placeholderSize * scale);
         }
-    }, [placeholderSize]);
+    }, [placeholderSize, originalImageSize.x, originalImageSize.y]);
 
     return(
         <Fragment>
@@ -251,7 +244,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
                                         <div className="d-flex gap-2">
                                             <input type="text" className="form-control" placeholder="Placeholder Name." onInput={(event) => setPlaceholderText(event.currentTarget.value)}/>
                                             <input type="number" className="form-control" value={placeholderSize} step={1} style={{width: "60px"}} min={6} onInput={(event) => getPlaceholderSize(parseInt(event.currentTarget.value))} />
-                                            <button type="button" className="btn btn-secondary btn-sm" style={{width: "60px"}} onClick={() => setTextTransform((prevValue) => prevValue == "aa"? "Aa": prevValue == "Aa"? "AA" : "aa")}>{textTransform}</button>
+                                            <button type="button" className="btn btn-secondary btn-sm" style={{width: "60px"}} onClick={() => setTextTransform((prevValue) => prevValue === "aa"? "Aa": prevValue === "Aa"? "AA" : "aa")}>{textTransform}</button>
                                             <button type="button" className="btn btn-warning btn-sm" onClick={handleImageRemoveButton}>Remove</button>
                                         </div>
                                     }
@@ -260,11 +253,11 @@ const CustomEmail: React.FC<CustomeEmail> = ({id, handleFormClose, collectNotifi
                                 <div className="w-100 d-flex mb-4 rounded-3 position-relative justify-content-center align-items-center overflow-hidden border" style={{minHeight: '100px'}}>
                                     { Boolean(imageURL) &&
                                         <div className="position-absolute border border-primary rounded-3" style={{backgroundColor: "rgb(13 110 253 / 30%)", cursor: "pointer"}} onMouseDown={handleDragPlaceholder} ref={textPlaceholderRef}>
-                                            <p className="my-0 mx-1" style={{fontSize: `${viewFontSize}px`, textTransform: textTransform == "Aa"? "capitalize" : textTransform == "AA"? "uppercase" : "lowercase"}}>{placeholderText ?? "Placeholder Text"}</p>
+                                            <p className="my-0 mx-1" style={{fontSize: `${viewFontSize}px`, textTransform: textTransform === "Aa"? "capitalize" : textTransform === "AA"? "uppercase" : "lowercase"}}>{placeholderText ?? "Placeholder Text"}</p>
                                         </div>
                                     }
                                     {!Boolean(imageURL) && <button type="button" className="btn btn-outline-secondary position-absolute" onClick={handleImageUploadButton}>Upload Image</button>}
-                                    {Boolean(imageURL) && <img id="imagePreview" src={`${imageURL}`} alt="Image Preview" className="w-100" />}
+                                    {Boolean(imageURL) && <img id="imagePreview" src={`${imageURL}`} alt="preview" className="w-100" />}
                                 </div>
                             </div>
                             <div className="form-check form-switch mb-3">
