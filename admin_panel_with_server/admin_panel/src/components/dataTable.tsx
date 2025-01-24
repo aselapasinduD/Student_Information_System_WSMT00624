@@ -1,4 +1,4 @@
-import React, {useState, Fragment, useEffect, useMemo, Dispatch, SetStateAction} from 'react';
+import React, { useState, Fragment, useEffect, useMemo, Dispatch, SetStateAction } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Collapse from '@mui/material/Collapse';
@@ -18,7 +18,7 @@ import Checkbox from '@mui/material/Checkbox';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import visuallyHidden from '@mui/utils/visuallyHidden';
 import TextField from '@mui/material/TextField';
-import Menu, {MenuProps} from '@mui/material/Menu';
+import Menu, { MenuProps } from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
@@ -46,6 +46,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import LinkIcon from '@mui/icons-material/Link';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
 import AlertDialog from "./alertDialog";
 
@@ -72,8 +73,8 @@ interface TablePaginationActionsProps {
   onPageChange: (event: React.MouseEvent<HTMLButtonElement>, newPage: number) => void;
 }
 
-function getComparator<Key extends keyof any>(order: Order, orderBy: Key):(a: { [key in Key]: any }, b: { [key in Key]: any }) => number {
-  return order === 'desc'? (a, b) => descendingComparator(a, b, orderBy) : (a, b) => -descendingComparator(a, b, orderBy);
+function getComparator<Key extends keyof any>(order: Order, orderBy: Key): (a: { [key in Key]: any }, b: { [key in Key]: any }) => number {
+  return order === 'desc' ? (a, b) => descendingComparator(a, b, orderBy) : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
 function stableSort<T>(array: readonly Student[], comparator: (a: T, b: T) => number) {
@@ -136,24 +137,24 @@ const initialFilterOptions: FilterOptions[] = [
 function filter(rows: readonly Student[], options: FilterOptions[]) {
   let filterdRows = rows;
   // Filter full_name
-  filterdRows = filterdRows.filter((record) => record.full_name.toLowerCase().includes((options[1].value? options[1].value: "").toLowerCase()));
+  filterdRows = filterdRows.filter((record) => record.full_name.toLowerCase().includes((options[1].value ? options[1].value : "").toLowerCase()));
   // Filter number_of_referrals
-  if(options[0].value) filterdRows = filterdRows.filter((record) => options[0].options?.below === true?  record.number_of_referrals <= parseInt((options[0].value? options[0].value: "")): record.number_of_referrals === parseInt((options[0].value? options[0].value: "")));
+  if (options[0].value) filterdRows = filterdRows.filter((record) => options[0].options?.below === true ? record.number_of_referrals <= parseInt((options[0].value ? options[0].value : "")) : record.number_of_referrals === parseInt((options[0].value ? options[0].value : "")));
   // Filter register_at
-  filterdRows = filterdRows.filter((record) => record.register_at.toLowerCase().includes((options[2].value? options[2].value: "").toLowerCase()));
+  filterdRows = filterdRows.filter((record) => record.register_at.toLowerCase().includes((options[2].value ? options[2].value : "").toLowerCase()));
   // Filter google_form_id
-  filterdRows = filterdRows.filter((record) => options[3].value? record.google_form_id === parseInt((options[3].value? options[3].value: "")) : true);
+  filterdRows = filterdRows.filter((record) => options[3].value ? record.google_form_id === parseInt((options[3].value ? options[3].value : "")) : true);
   // Filter status
   filterdRows = filterdRows.filter((record) => {
-    if(!options[4].value) return true;
-    if(!record.status || record.status.length === 0) return false;
+    if (!options[4].value) return true;
+    if (!record.status || record.status.length === 0) return false;
     return Array.isArray(record.status) && record.status.some((status: string) => options[4].value?.toLowerCase().split(",").includes(status.toLowerCase()));
   });
   // Fillter Address
   filterdRows = filterdRows.filter((record) => {
-    if(options[5].options?.NoN) return Boolean(!record.address);
-    if(record.address) return record.address.toLowerCase().includes((options[5].value? options[5].value: "").toLowerCase());
-    if(options[5].value) return false;
+    if (options[5].options?.NoN) return Boolean(!record.address);
+    if (record.address) return record.address.toLowerCase().includes((options[5].value ? options[5].value : "").toLowerCase());
+    if (options[5].value) return false;
     return true
   });
   return filterdRows;
@@ -198,7 +199,7 @@ const StatusList = [
  * @since 1.0.0
  */
 const FilterMenus = (props: filterMenus) => {
-  const {setfilteroptions, open} = props;
+  const { setfilteroptions, open } = props;
   const [valueFullName, getValueFullName] = useState<string>("");
   const [valueNumberOfReferrals, getValueNumberOfRegerrals] = useState<string>("");
   const [valueRegisterAt, getValueRegisterAt] = useState<string>("");
@@ -220,7 +221,7 @@ const FilterMenus = (props: filterMenus) => {
     getValueRegisterAt(value);
   }
   const handleStatusChange = (event: SelectChangeEvent<typeof status>) => {
-    const {target: { value }} = event;
+    const { target: { value } } = event;
     setStatus(typeof value === 'string' ? value.split(',') : value);
   };
   const handleAddressChange = (address: string) => {
@@ -237,160 +238,160 @@ const FilterMenus = (props: filterMenus) => {
     getValueAddress("");
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     const fetchStudent = async () => {
-        try{
-            const response = await fetch(baseAPI + "/admin-panel/googleforms/titles",{
-                method: 'GET'
-            });
-            if(!response){
-                throw new Error("Failed to fetch Google Forms titles from the server");
-            }
-            const googleFormsArr = await response.json() as ResponseGoogleFormTitles;
-            if(Boolean(googleFormsArr.body.length)){
-              setGoogleFormTitleList([...googleFormsArr.body]);
-            }
-            // getGoogleForms(googleFormsArr.body? formatGoogleFormList(googleFormsArr.body) : Loading);
-        } catch (error){
-            console.log("Error fetching Google forms titles from server: ", error);
+      try {
+        const response = await fetch(baseAPI + "/admin-panel/googleforms/titles", {
+          method: 'GET'
+        });
+        if (!response) {
+          throw new Error("Failed to fetch Google Forms titles from the server");
         }
+        const googleFormsArr = await response.json() as ResponseGoogleFormTitles;
+        if (Boolean(googleFormsArr.body.length)) {
+          setGoogleFormTitleList([...googleFormsArr.body]);
+        }
+        // getGoogleForms(googleFormsArr.body? formatGoogleFormList(googleFormsArr.body) : Loading);
+      } catch (error) {
+        console.log("Error fetching Google forms titles from server: ", error);
+      }
     }
     fetchStudent();
-  },[]);
+  }, []);
 
-  useEffect(()=>{
-    if(open){
+  useEffect(() => {
+    if (open) {
       setfilteroptions(
         [
           {
             id: "number_of_referrals",
-            value: valueNumberOfReferrals === ""? null : valueNumberOfReferrals,
-            options: {below: isBelowChecked}
+            value: valueNumberOfReferrals === "" ? null : valueNumberOfReferrals,
+            options: { below: isBelowChecked }
           },
           {
             id: "full_name",
-            value: valueFullName === ""? null: valueFullName
+            value: valueFullName === "" ? null : valueFullName
           },
           {
             id: "register_at",
-            value: valueRegisterAt === ""? null : valueRegisterAt
+            value: valueRegisterAt === "" ? null : valueRegisterAt
           },
           {
             id: "google_form_id",
-            value: googleFormTitle === ""? null : googleFormTitle
+            value: googleFormTitle === "" ? null : googleFormTitle
           },
           {
             id: "status",
-            value: status.length === 0? null : status.join(",")
+            value: status.length === 0 ? null : status.join(",")
           },
           {
             id: "address",
-            value: valueAddress === ""? null : valueAddress,
-            options: {NoN: isNonAddressChecked}
+            value: valueAddress === "" ? null : valueAddress,
+            options: { NoN: isNonAddressChecked }
           }
         ]
       );
     }
-  },[valueFullName, valueNumberOfReferrals, valueRegisterAt, isBelowChecked, open, setfilteroptions, googleFormTitle, googleFormTitleList, status, valueAddress, isNonAddressChecked]);
+  }, [valueFullName, valueNumberOfReferrals, valueRegisterAt, isBelowChecked, open, setfilteroptions, googleFormTitle, googleFormTitleList, status, valueAddress, isNonAddressChecked]);
 
   return (
-      <Menu
-        id="demo-customized-menu"
-        MenuListProps={{
-          'aria-labelledby': 'demo-customized-button',
-        }}
-        elevation={0}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        sx={{
-          '& .MuiPaper-root': {
-            borderRadius: 3,
-            marginTop: "5px",
-            minWidth: 180,
-            boxShadow:'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px'
-            }
-        }}
-        {...props}
-      >
-        <MenuItem onKeyDown={(e) => e.stopPropagation()}>
-          <TextField name="full_name"  hiddenLabel label="Full Name" inputProps={{pattern: "[0-9]{11}", value: valueFullName}} size='small' margin='none' sx={{width: "100%"}} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleIdChange(e.target.value)}/>
-        </MenuItem>
-        <MenuItem onKeyDown={(e) => e.stopPropagation()}>
-          <TextField name="address"  hiddenLabel label="Address" inputProps={{value: valueAddress}} type='text' size='small' margin='none' sx={{mr: 1, width: "100%"}} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleAddressChange(e.target.value)}/>
-          <FormControlLabel control={<Checkbox checked={isNonAddressChecked} onChange={(e)=>setIsNonAddressChecked(e.target.checked)} />} label="NoN" />
-        </MenuItem>
-        <MenuItem onKeyDown={(e) => e.stopPropagation()}>
-          <TextField name='number_of_referrals' placeholder='0' inputProps={{pattern: "[0-9]{11}", type: "number", value: valueNumberOfReferrals}} hiddenLabel label="Referrals" size='small' margin='none' onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleNumberOfReferralsChange(e.target.value)} sx={{ mr: 1, width: '15ch' }}/>
-          <FormControlLabel control={<Checkbox checked={isBelowChecked} onChange={(e)=>setIsBelowChecked(e.target.checked)} />} label="Below" />
-        </MenuItem>
-        <MenuItem onKeyDown={(e) => e.stopPropagation()}>
-          <TextField name='register_at' hiddenLabel label="Register At" placeholder='Jan 01, 2025, 00:00 PM' size='small' margin='none' sx={{width: "100%"}} inputProps={{pattern: "[0-9]{11}", value: valueRegisterAt}} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>handleRegisterAtChange(e.target.value)}/>
-        </MenuItem>
-        <MenuItem onKeyDown={(e) => e.stopPropagation()}>
-          <FormControl size="small" sx={{width: "100%"}}>
-            <InputLabel id="google-form-title-select-label">Google Form Title</InputLabel>
-            <Select
-              labelId="google-form-title-select-label"
-              id="demo-simple-select"
-              value={googleFormTitle}
-              label="Google Form Title"
-              onChange={(e: SelectChangeEvent) => setGoogleFormTitle(e.target.value as string)}
-            >
-              <MenuItem value={0}>
-                <em>None</em>
-              </MenuItem>
-              {googleFormTitleList.length > 0 && googleFormTitleList.map((googleFormtitlevalue, index) => <MenuItem key={index} value={googleFormtitlevalue.id}>{googleFormtitlevalue.title}</MenuItem>)}
-            </Select>
-          </FormControl>
-        </MenuItem>
-        <MenuItem onKeyDown={(e) => e.stopPropagation()}>
-          <FormControl size="small" sx={{width: "100%"}}>
-            <InputLabel id="demo-multiple-chip-label">Status</InputLabel>
-            <Select
-              labelId="status-multiple-chip-label"
-              id="status-multiple-chip"
-              multiple
-              value={status}
-              onChange={handleStatusChange}
-              input={<OutlinedInput id="select-multiple-chip" label="Status" />}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((value) => (
-                    <Chip key={value} label={value.toUpperCase()} />
-                  ))}
-                </Box>
-              )}
-              MenuProps={
-                {
-                  PaperProps:{
-                    style: {
-                      maxHeight: 48 * 4.5 + 8
-                    }
+    <Menu
+      id="demo-customized-menu"
+      MenuListProps={{
+        'aria-labelledby': 'demo-customized-button',
+      }}
+      elevation={0}
+      anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'right',
+      }}
+      transformOrigin={{
+        vertical: 'top',
+        horizontal: 'right',
+      }}
+      sx={{
+        '& .MuiPaper-root': {
+          borderRadius: 3,
+          marginTop: "5px",
+          minWidth: 180,
+          boxShadow: 'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px'
+        }
+      }}
+      {...props}
+    >
+      <MenuItem onKeyDown={(e) => e.stopPropagation()}>
+        <TextField name="full_name" hiddenLabel label="Full Name" inputProps={{ pattern: "[0-9]{11}", value: valueFullName }} size='small' margin='none' sx={{ width: "100%" }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleIdChange(e.target.value)} />
+      </MenuItem>
+      <MenuItem onKeyDown={(e) => e.stopPropagation()}>
+        <TextField name="address" hiddenLabel label="Address" inputProps={{ value: valueAddress }} type='text' size='small' margin='none' sx={{ mr: 1, width: "100%" }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressChange(e.target.value)} />
+        <FormControlLabel control={<Checkbox checked={isNonAddressChecked} onChange={(e) => setIsNonAddressChecked(e.target.checked)} />} label="NoN" />
+      </MenuItem>
+      <MenuItem onKeyDown={(e) => e.stopPropagation()}>
+        <TextField name='number_of_referrals' placeholder='0' inputProps={{ pattern: "[0-9]{11}", type: "number", value: valueNumberOfReferrals }} hiddenLabel label="Referrals" size='small' margin='none' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNumberOfReferralsChange(e.target.value)} sx={{ mr: 1, width: '15ch' }} />
+        <FormControlLabel control={<Checkbox checked={isBelowChecked} onChange={(e) => setIsBelowChecked(e.target.checked)} />} label="Below" />
+      </MenuItem>
+      <MenuItem onKeyDown={(e) => e.stopPropagation()}>
+        <TextField name='register_at' hiddenLabel label="Register At" placeholder='Jan 01, 2025, 00:00 PM' size='small' margin='none' sx={{ width: "100%" }} inputProps={{ pattern: "[0-9]{11}", value: valueRegisterAt }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleRegisterAtChange(e.target.value)} />
+      </MenuItem>
+      <MenuItem onKeyDown={(e) => e.stopPropagation()}>
+        <FormControl size="small" sx={{ width: "100%" }}>
+          <InputLabel id="google-form-title-select-label">Google Form Title</InputLabel>
+          <Select
+            labelId="google-form-title-select-label"
+            id="demo-simple-select"
+            value={googleFormTitle}
+            label="Google Form Title"
+            onChange={(e: SelectChangeEvent) => setGoogleFormTitle(e.target.value as string)}
+          >
+            <MenuItem value={0}>
+              <em>None</em>
+            </MenuItem>
+            {googleFormTitleList.length > 0 && googleFormTitleList.map((googleFormtitlevalue, index) => <MenuItem key={index} value={googleFormtitlevalue.id}>{googleFormtitlevalue.title}</MenuItem>)}
+          </Select>
+        </FormControl>
+      </MenuItem>
+      <MenuItem onKeyDown={(e) => e.stopPropagation()}>
+        <FormControl size="small" sx={{ width: "100%" }}>
+          <InputLabel id="demo-multiple-chip-label">Status</InputLabel>
+          <Select
+            labelId="status-multiple-chip-label"
+            id="status-multiple-chip"
+            multiple
+            value={status}
+            onChange={handleStatusChange}
+            input={<OutlinedInput id="select-multiple-chip" label="Status" />}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value.toUpperCase()} />
+                ))}
+              </Box>
+            )}
+            MenuProps={
+              {
+                PaperProps: {
+                  style: {
+                    maxHeight: 48 * 4.5 + 8
                   }
                 }
               }
-            >
-              {StatusList.map((status) => (
-                <MenuItem
-                  key={status.status}
-                  value={status.status}
-                >
-                  {status.status.toUpperCase()}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </MenuItem>
-        <MenuItem onKeyDown={(e) => e.stopPropagation()} onClick={handleClearFilters} style={{justifyContent: "center"}}>
-          <Typography align='center'>Clear Filters</Typography>
-        </MenuItem>
-      </Menu>
+            }
+          >
+            {StatusList.map((status) => (
+              <MenuItem
+                key={status.status}
+                value={status.status}
+              >
+                {status.status.toUpperCase()}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </MenuItem>
+      <MenuItem onKeyDown={(e) => e.stopPropagation()} onClick={handleClearFilters} style={{ justifyContent: "center" }}>
+        <Typography align='center'>Clear Filters</Typography>
+      </MenuItem>
+    </Menu>
   );
 }
 
@@ -456,6 +457,7 @@ interface EnhancedTableToolbarProps {
   handleCustomeEmailForAll: () => void;
   setFilterOptions: (value: FilterOptions[]) => void;
   handleImportBundleOfStudentsFormOpen: () => void;
+  handleGeneratePDFsFormOpen: () => void;
 }
 
 /**
@@ -466,7 +468,7 @@ interface EnhancedTableToolbarProps {
  * @since 1.0.0
  */
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-  const { numSelected, handleAddFormOpen, handleDelete, handleCustomeEmailForAll, setFilterOptions, handleImportBundleOfStudentsFormOpen} = props;
+  const { numSelected, handleAddFormOpen, handleDelete, handleCustomeEmailForAll, setFilterOptions, handleImportBundleOfStudentsFormOpen, handleGeneratePDFsFormOpen } = props;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const open = Boolean(anchorEl);
@@ -484,7 +486,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
       sx={{
         pl: { sm: 2 },
         pr: { xs: 1, sm: 1 },
-        ...(numSelected > 0 && {backgroundColor: "rgba(25, 118, 210, 0.12)"}),
+        ...(numSelected > 0 && { backgroundColor: "rgba(25, 118, 210, 0.12)" }),
       }}
     >
       {numSelected > 0 ? (
@@ -506,7 +508,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
             Students
           </Typography>
           <Typography variant="caption" gutterBottom sx={{ display: 'block' }}>
-            <strong>Status:</strong> Google Form - <Chip label="GF" sx={{fontWeight: 600}} /> | Certificate Emailed - <Chip label="CM" sx={{fontWeight: 600}} /> | Imported Bundle - <Chip label="IB" sx={{fontWeight: 600}} />
+            <strong>Status:</strong> Google Form - <Chip label="GF" sx={{ fontWeight: 600 }} /> | Certificate Emailed - <Chip label="CM" sx={{ fontWeight: 600 }} /> | Imported Bundle - <Chip label="IB" sx={{ fontWeight: 600 }} />
           </Typography>
         </Stack>
       )}
@@ -533,7 +535,15 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
           </Tooltip>
         </Fragment>
       ) : (
+
         <Fragment>
+          <Tooltip title="Import Bundle of Students">
+            <IconButton
+              onClick={handleGeneratePDFsFormOpen}
+            >
+              <PictureAsPdfIcon />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Import Bundle of Students">
             <IconButton
               onClick={handleImportBundleOfStudentsFormOpen}
@@ -556,7 +566,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
                 <FilterListIcon />
               </IconButton>
             </Tooltip>
-            <FilterMenus setfilteroptions={setFilterOptions} open={open} anchorEl={anchorEl} onClose={handleClose}/>
+            <FilterMenus setfilteroptions={setFilterOptions} open={open} anchorEl={anchorEl} onClose={handleClose} />
           </div>
         </Fragment>
       )}
@@ -564,7 +574,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
   );
 }
 
-interface EditStudent{
+interface EditStudent {
   id: number;
   full_name: string;
   email: string;
@@ -577,7 +587,7 @@ interface EditStudent{
 interface RowProps {
   row: Student;
   index: number;
-  isSelected: (selectedID: number ) => boolean;
+  isSelected: (selectedID: number) => boolean;
   handleSelectClick: (event: React.MouseEvent<unknown>, id: number) => void;
   handleCustormEmailFormOpen: (id: number[]) => void;
   handleEditFormOpen: (EditStudent: EditStudent) => void;
@@ -598,12 +608,12 @@ interface RowProps {
  * @version 1.1.0
  * @since 1.0.0
  */
-const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, handleCustormEmailFormOpen, handleEditFormOpen, copyReceiptLinkToClipboard, studentDetailsCheck}) => {
+const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, handleCustormEmailFormOpen, handleEditFormOpen, copyReceiptLinkToClipboard, studentDetailsCheck }) => {
   const [open, setOpen] = useState(false);
   const [anchorElForAddress, setAnchorElAddress] = React.useState<HTMLElement | null>(null);
   const isItemSelected = isSelected(row.id);
   const labelId = `checkbox-student-${index}`;
-  
+
   const handleAddressPopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElAddress(event.currentTarget);
   };
@@ -620,8 +630,8 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
         hover
         aria-checked={isItemSelected}
         selected={isItemSelected}
-        sx={{background: `${row.isDetailsChecked === null? "" : `linear-gradient(90deg, ${row.isDetailsChecked? "#00d703" : "red"} 5%, transparent 5%),`} linear-gradient(165deg, transparent 30%, ${row.google_form_color}) !important`}}
-        >
+        sx={{ background: `${row.isDetailsChecked === null ? "" : `linear-gradient(90deg, ${row.isDetailsChecked ? "#58ce5c" : "#fd6770"} 2%, transparent 3%),`} linear-gradient(165deg, transparent 30%, ${row.google_form_color}) !important` }}
+      >
         <TableCell padding="none">
           <Checkbox
             color="primary"
@@ -633,7 +643,7 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
           />
         </TableCell>
         <TableCell padding="none">
-          {Boolean(row.referral_student.length !== 0) && 
+          {Boolean(row.referral_student.length !== 0) &&
             <IconButton
               aria-label="expand row"
               size="small"
@@ -650,17 +660,17 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
         <TableCell >{row.email}</TableCell>
         <TableCell align='center'>{row.number_of_mails}</TableCell>
         <TableCell >{row.wa_number}</TableCell>
-        {row.number_of_referrals >= 2?
-            <TableCell padding='none' align='center' sx={{color: "green"}}>{row.number_of_referrals}</TableCell> :
-            <TableCell padding='none' align='center' sx={{color: "red"}}>{row.number_of_referrals}</TableCell>
+        {row.number_of_referrals >= 2 ?
+          <TableCell padding='none' align='center' sx={{ color: "green" }}>{row.number_of_referrals}</TableCell> :
+          <TableCell padding='none' align='center' sx={{ color: "red" }}>{row.number_of_referrals}</TableCell>
         }
         <TableCell align='center' >
-          <div style={{display: 'flex', gap: '4px'}}>
-            {Boolean(row.status) && Array.isArray(row.status) ? row.status.map((status: string, index: number) => <Chip key={index} label={`${status.toLocaleUpperCase()}`} sx={{fontWeight: 600}} />) : row.status}
+          <div style={{ display: 'flex', gap: '4px' }}>
+            {Boolean(row.status) && Array.isArray(row.status) ? row.status.map((status: string, index: number) => <Chip key={index} label={`${status.toLocaleUpperCase()}`} sx={{ fontWeight: 600 }} />) : row.status}
           </div>
         </TableCell>
         <TableCell align='center'>
-          {row.address || row.receiptURL?
+          {row.address || row.receiptURL ?
             <>
               <Typography
                 aria-owns={openAddressPopover ? 'mouse-over-address-popover' : undefined}
@@ -685,17 +695,17 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
                 disableRestoreFocus
               >
                 <Typography sx={{ p: 1 }}>Address: {row.address}</Typography>
-                <Typography sx={{ p: 1 }}>Receipt: 
+                <Typography sx={{ p: 1 }}>Receipt:
                   <Tooltip title="See The Receipt">
                     <a href={row.receiptURL} target='blank'><DocumentScannerIcon /></a>
                   </Tooltip>
                   <Tooltip title="Copy Receipt Link">
-                      <IconButton onClick={() => copyReceiptLinkToClipboard(row.receiptURL)} sx={{padding: "4px"}} disabled={!Boolean(row.receiptURL)} >
-                        <LinkIcon />
-                      </IconButton>
+                    <IconButton onClick={() => copyReceiptLinkToClipboard(row.receiptURL)} sx={{ padding: "4px" }} disabled={!Boolean(row.receiptURL)} >
+                      <LinkIcon />
+                    </IconButton>
                   </Tooltip>
                 </Typography>
-                <div className="d-grid gap-2 m-2" style={{gridTemplateColumns: "1fr 1fr"}}>
+                <div className="d-grid gap-2 m-2" style={{ gridTemplateColumns: "1fr 1fr" }}>
                   <button type="button" className='btn btn-danger btn-sm col' onClick={() => studentDetailsCheck(row.id, false)}>NO</button>
                   <button type="button" className='btn btn-success btn-sm col' onClick={() => studentDetailsCheck(row.id, true)}>OK</button>
                 </div>
@@ -708,25 +718,25 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
         <TableCell >{row.register_at}</TableCell>
         <TableCell >{row.updated_at}</TableCell>
         <TableCell padding='none' >
-          <div style={{display: 'flex'}}>
-          <Tooltip title="Send Mail">
-            <IconButton
-              onClick={() => handleCustormEmailFormOpen([row.id])}
-            >
-              <EmailIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Send SMS">
-            <IconButton>
-              <SendIcon />
-            </IconButton>
-          </Tooltip>
+          <div style={{ display: 'flex' }}>
+            <Tooltip title="Send Mail">
+              <IconButton
+                onClick={() => handleCustormEmailFormOpen([row.id])}
+              >
+                <EmailIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Send SMS">
+              <IconButton>
+                <SendIcon />
+              </IconButton>
+            </Tooltip>
           </div>
         </TableCell>
         <TableCell padding='none' >
           <Tooltip title="Edit Details">
             <IconButton
-              onClick={() => handleEditFormOpen({id: row.id, full_name: row.full_name, email: row.email, wanumber: row.wa_number, address: row.address, googleFormId: row.google_form_id, receiptURL: row.receiptURL})}
+              onClick={() => handleEditFormOpen({ id: row.id, full_name: row.full_name, email: row.email, wanumber: row.wa_number, address: row.address, googleFormId: row.google_form_id, receiptURL: row.receiptURL })}
             >
               <EditIcon />
             </IconButton>
@@ -753,7 +763,7 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {row.referral_student.length !== 0? row.referral_student.map((student, index) => (
+                    {row.referral_student.length !== 0 ? row.referral_student.map((student, index) => (
                       <TableRow key={index}>
                         <TableCell >{student.id}</TableCell>
                         <TableCell >{student.full_name}</TableCell>
@@ -762,10 +772,10 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
                         <TableCell >{student.register_at}</TableCell>
                         <TableCell >{student.created_at}</TableCell>
                       </TableRow>
-                    )) : 
-                    <TableRow>
+                    )) :
+                      <TableRow>
                         <TableCell colSpan={10} scope="row" align='center'>There is no any referral Students Yet.(refesh the page)</TableCell>
-                    </TableRow>}
+                      </TableRow>}
                   </TableBody>
                 </Table>
               </Box>
@@ -777,7 +787,7 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
   );
 }
 
-interface rowStudents{
+interface rowStudents {
   rows: Student[];
   handleAddFormOpen: () => void;
   handleEditFormOpen: (EditStudent: EditStudent) => void;
@@ -785,6 +795,7 @@ interface rowStudents{
   collectNotifications: (notification: Message) => void;
   handleImportBundleOfStudentsFormOpen: () => void;
   refetchStudents: Dispatch<SetStateAction<boolean>>;
+  handleGeneratePDFsFormOpen: () => void;
 }
 
 interface ColumnNames {
@@ -869,237 +880,238 @@ const columnNames: readonly ColumnNames[] = [
  * @version 1.1.0
  * @since 1.0.0
  */
-const DataTable: React.FC<rowStudents> = ({rows, handleAddFormOpen, handleEditFormOpen, handleCustormEmailFormOpen, collectNotifications, handleImportBundleOfStudentsFormOpen, refetchStudents}) => {
-    const [order, setOrder] = useState<Order>('desc');
-    const [orderBy, setOrderBy] = useState<keyof Student | Unassigned>('id');
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [selected, setSelected] = useState<readonly number[]>([]);
-    const [filterOptions, setFilterOptions] = useState<FilterOptions[]>(initialFilterOptions);
-    const [rowCount, getRowCount] = useState<number>(rows.length);
-    const [isDialogOpen, getIsDialogOpen] = useState<boolean>(false);
-    const numSelected = selected.length;
+const DataTable: React.FC<rowStudents> = ({ rows, handleAddFormOpen, handleEditFormOpen, handleCustormEmailFormOpen, collectNotifications, handleImportBundleOfStudentsFormOpen, handleGeneratePDFsFormOpen, refetchStudents }) => {
+  const [order, setOrder] = useState<Order>('desc');
+  const [orderBy, setOrderBy] = useState<keyof Student | Unassigned>('id');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [selected, setSelected] = useState<readonly number[]>([]);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions[]>(initialFilterOptions);
+  const [rowCount, getRowCount] = useState<number>(rows.length);
+  const [isDialogOpen, getIsDialogOpen] = useState<boolean>(false);
+  const numSelected = selected.length;
 
-    // console.log(filterOptions);
+  // console.log(filterOptions);
 
-    const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Student) => {
-      const isAsc = orderBy === property && order === 'asc';
-      setOrder(isAsc ? 'desc' : 'asc');
-      setOrderBy(property);
-    };
+  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Student) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
 
-    const createSortHandler = (property: keyof Student) => (event: React.MouseEvent<unknown>) => {
-      handleRequestSort(event, property);
-    };
+  const createSortHandler = (property: keyof Student) => (event: React.MouseEvent<unknown>) => {
+    handleRequestSort(event, property);
+  };
 
-    const filteredRows = useMemo(() => filter(rows, filterOptions),[filterOptions, rows]);
+  const filteredRows = useMemo(() => filter(rows, filterOptions), [filterOptions, rows]);
 
-    const visibleRows = useMemo(
-      () => stableSort(filteredRows,getComparator(order, orderBy)).slice(page * rowsPerPage,page * rowsPerPage + rowsPerPage),
-      [order, orderBy, page, rowsPerPage, filteredRows]);
+  const visibleRows = useMemo(
+    () => stableSort(filteredRows, getComparator(order, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [order, orderBy, page, rowsPerPage, filteredRows]);
 
-    const isSelected = (id: number) => selected.indexOf(id) !== -1;
+  const isSelected = (id: number) => selected.indexOf(id) !== -1;
 
-    useEffect(() => {
-      getRowCount(filteredRows.length);
-    }, [visibleRows, filteredRows.length]);
+  useEffect(() => {
+    getRowCount(filteredRows.length);
+  }, [visibleRows, filteredRows.length]);
 
-    const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (event.target.checked) {
-        if(filterOptions !== initialFilterOptions){
-          const newSelected = filteredRows.map((n) => n.id);
-          getRowCount(filteredRows.length);
-          setSelected(newSelected);
-          return;
-        }
-        const newSelected = rows.map((n) => n.id);
-        getRowCount(rows.length);
+  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      if (filterOptions !== initialFilterOptions) {
+        const newSelected = filteredRows.map((n) => n.id);
+        getRowCount(filteredRows.length);
         setSelected(newSelected);
         return;
       }
-      setSelected([]);
-    };
-
-    const handleSelectClick = (event: React.MouseEvent<unknown>, id: number) => {
-      const selectedIndex = selected.indexOf(id);
-      let newSelected: readonly number[] = [];
-  
-      if (selectedIndex === -1) {
-        newSelected = newSelected.concat(selected, id);
-      } else if (selectedIndex === 0) {
-        newSelected = newSelected.concat(selected.slice(1));
-      } else if (selectedIndex === selected.length - 1) {
-        newSelected = newSelected.concat(selected.slice(0, -1));
-      } else if (selectedIndex > 0) {
-        newSelected = newSelected.concat(
-          selected.slice(0, selectedIndex),
-          selected.slice(selectedIndex + 1),
-        );
-      }
+      const newSelected = rows.map((n) => n.id);
+      getRowCount(rows.length);
       setSelected(newSelected);
-    };
+      return;
+    }
+    setSelected([]);
+  };
 
-    const DeleteStudents = async() => {
-      try{
-        const response = await fetch(baseAPI + "/admin-panel/student",
+  const handleSelectClick = (event: React.MouseEvent<unknown>, id: number) => {
+    const selectedIndex = selected.indexOf(id);
+    let newSelected: readonly number[] = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, id);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(
+        selected.slice(0, selectedIndex),
+        selected.slice(selectedIndex + 1),
+      );
+    }
+    setSelected(newSelected);
+  };
+
+  const DeleteStudents = async () => {
+    try {
+      const response = await fetch(baseAPI + "/admin-panel/student",
         {
           method: "DELETE",
           headers: {
-              "Content-Type": "application/json"
+            "Content-Type": "application/json"
           },
-          body: JSON.stringify({listofdelete: selected})
+          body: JSON.stringify({ listofdelete: selected })
         })
-        if(response.ok) {
-          const notification = await response.json() as Message;
-          collectNotifications(notification);
-          // window.location.reload();
-          refetchStudents((prevValue) => !prevValue);
-        } else {
-          console.log("Add Student didn't Success");
-          collectNotifications({message: "Edit Student didn't Success", from: "Server", error: true});
-        }
-      } catch (error) {
-        console.log("Error Fetching Students From Server: ", error);
-        collectNotifications({message: "Error Fetching Students From Server.", from: "Main Server", error: true});
+      if (response.ok) {
+        const notification = await response.json() as Message;
+        collectNotifications(notification);
+        // window.location.reload();
+        refetchStudents((prevValue) => !prevValue);
+      } else {
+        console.log("Add Student didn't Success");
+        collectNotifications({ message: "Edit Student didn't Success", from: "Server", error: true });
       }
+    } catch (error) {
+      console.log("Error Fetching Students From Server: ", error);
+      collectNotifications({ message: "Error Fetching Students From Server.", from: "Main Server", error: true });
     }
+  }
 
-    const handleDelete = async () => {
-      getIsDialogOpen(true);
-    }
+  const handleDelete = async () => {
+    getIsDialogOpen(true);
+  }
 
-    const handleStudentDetailsCheck = async (stduentID: number, status: Boolean) => {
-      try{
-        const response = await fetch(baseAPI + "/admin-panel/student/detailscheck",
+  const handleStudentDetailsCheck = async (stduentID: number, status: Boolean) => {
+    try {
+      const response = await fetch(baseAPI + "/admin-panel/student/detailscheck",
         {
           method: "DELETE",
           headers: {
-              "Content-Type": "application/json"
+            "Content-Type": "application/json"
           },
-          body: JSON.stringify({stduentID: stduentID, status: status})
+          body: JSON.stringify({ stduentID: stduentID, status: status })
         })
-        if(response.ok) {
-          const notification = await response.json() as Message;
-          // console.log(notification);
-          refetchStudents((prevValue) => !prevValue);
-        } else {
-          console.log("Add Student didn't Success");
-        }
-      } catch (error) {
-        console.log("Error Fetching Students From Server: ", error);
+      if (response.ok) {
+        const notification = await response.json() as Message;
+        // console.log(notification);
+        refetchStudents((prevValue) => !prevValue);
+      } else {
+        console.log("Add Student didn't Success");
       }
+    } catch (error) {
+      console.log("Error Fetching Students From Server: ", error);
+    }
+  }
+
+  const handleFormSubmitConform = async (isConfirm: boolean) => {
+    if (!isConfirm) return;
+    if (!isDialogOpen) return;
+    getIsDialogOpen(false);
+    await DeleteStudents();
+  }
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleCustomeEmailForAll = () => {
+    handleCustormEmailFormOpen(selected);
+  }
+
+  const copyReceiptLinkToClipboard = async (receiptLink: string) => {
+    const permissionStatus = await navigator.permissions.query({ name: 'clipboard-write' as PermissionName });
+
+    if (permissionStatus.state === 'denied') {
+      collectNotifications({ message: "Clipboard write permission is denied.", from: "Main Server", error: false });
+      return;
     }
 
-    const handleFormSubmitConform = async (isConfirm: boolean) => {
-      if(!isConfirm) return;
-      if(!isDialogOpen) return;
-      getIsDialogOpen(false);
-      await DeleteStudents();
-    }
+    await navigator.clipboard.writeText(receiptLink);
+    collectNotifications({ message: "Receipt Link is Copied.", from: "Main Server", error: false });
+  }
 
-    const handleChangePage = (event: unknown, newPage: number) => {
-      setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
-      setPage(0);
-    };
-
-    const handleCustomeEmailForAll = () => {
-      handleCustormEmailFormOpen(selected);
-    }
-
-    const copyReceiptLinkToClipboard = async (receiptLink: string) => {
-      const permissionStatus = await navigator.permissions.query({ name: 'clipboard-write' as PermissionName });
-  
-      if (permissionStatus.state === 'denied') {
-        collectNotifications({message: "Clipboard write permission is denied.", from: "Main Server", error: false});
-        return;
-      }
-  
-      await navigator.clipboard.writeText(receiptLink);
-      collectNotifications({message: "Receipt Link is Copied.", from: "Main Server", error: false});
-    }
-
-    return (
-      <Fragment>
-        <Paper>
-          <EnhancedTableToolbar 
-            numSelected={numSelected}
-            handleAddFormOpen={handleAddFormOpen}
-            handleDelete={handleDelete}
-            handleCustomeEmailForAll={handleCustomeEmailForAll}
-            setFilterOptions={setFilterOptions}
-            handleImportBundleOfStudentsFormOpen={handleImportBundleOfStudentsFormOpen}
+  return (
+    <Fragment>
+      <Paper>
+        <EnhancedTableToolbar
+          numSelected={numSelected}
+          handleAddFormOpen={handleAddFormOpen}
+          handleDelete={handleDelete}
+          handleCustomeEmailForAll={handleCustomeEmailForAll}
+          setFilterOptions={setFilterOptions}
+          handleImportBundleOfStudentsFormOpen={handleImportBundleOfStudentsFormOpen}
+          handleGeneratePDFsFormOpen={handleGeneratePDFsFormOpen}
+        />
+        <TableContainer>
+          <Table aria-label="collapsible table" size={"small"}>
+            <TableHead>
+              <TableRow>
+                <TableCell padding="none">
+                  <Checkbox
+                    color="primary"
+                    indeterminate={numSelected > 0 && numSelected < rowCount}
+                    checked={rowCount > 0 && numSelected === rowCount}
+                    onChange={handleSelectAllClick}
+                    inputProps={{
+                      'aria-label': 'select all desserts',
+                    }}
+                  />
+                </TableCell>
+                <TableCell padding="none" />
+                {columnNames.map((column) => {
+                  return (
+                    <TableCell
+                      key={column.id}
+                      align={column.numeric ? 'center' : 'left'}
+                      sortDirection={orderBy === column.id ? order : false}
+                      padding={column.padding}
+                    >
+                      <TableSortLabel
+                        active={orderBy === column.id}
+                        direction={orderBy === column.id ? order : 'asc'}
+                        onClick={createSortHandler(column.id)}
+                      >
+                        {column.label}
+                        {orderBy === column.id ? (
+                          <Box component="span" sx={visuallyHidden}>
+                            {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                          </Box>
+                        ) : null}
+                      </TableSortLabel>
+                    </TableCell>
+                  );
+                })}
+                <TableCell align="center" padding='none'>
+                  Send
+                </TableCell>
+                <TableCell padding='none' />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {visibleRows.map((row, index) => (
+                <Row key={index} row={row} index={index} isSelected={isSelected} handleSelectClick={handleSelectClick} handleEditFormOpen={handleEditFormOpen} handleCustormEmailFormOpen={handleCustormEmailFormOpen} copyReceiptLinkToClipboard={copyReceiptLinkToClipboard} studentDetailsCheck={handleStudentDetailsCheck} />
+              ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            rowsPerPageOptions={[10, 25, 50, { label: "All", value: rowCount }]}
+            component="div"
+            count={rowCount}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            ActionsComponent={TablePaginationActions}
+            sx={{ '& *': { margin: "0 !important" } }}
           />
-          <TableContainer>
-              <Table aria-label="collapsible table" size={"small"}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell padding="none">
-                        <Checkbox
-                          color="primary"
-                          indeterminate={numSelected > 0 && numSelected < rowCount}
-                          checked={rowCount > 0 && numSelected === rowCount}
-                          onChange={handleSelectAllClick}
-                          inputProps={{
-                            'aria-label': 'select all desserts',
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell padding="none" />
-                      {columnNames.map((column) => {
-                        return(
-                          <TableCell
-                            key={column.id}
-                            align={column.numeric ? 'center' : 'left'}
-                            sortDirection={orderBy === column.id ? order : false}
-                            padding={column.padding}
-                          >
-                            <TableSortLabel
-                              active={orderBy === column.id}
-                              direction={orderBy === column.id ? order : 'asc'}
-                              onClick={createSortHandler(column.id)}
-                            >
-                              {column.label}
-                              {orderBy === column.id ? (
-                                <Box component="span" sx={visuallyHidden}>
-                                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                                </Box>
-                              ) : null}
-                            </TableSortLabel>
-                          </TableCell>
-                        );
-                      })}
-                      <TableCell align="center" padding='none'>
-                        Send
-                      </TableCell>
-                      <TableCell padding='none' />
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                      {visibleRows.map((row, index) => (
-                          <Row key={index} row={row} index={index} isSelected={isSelected} handleSelectClick={handleSelectClick} handleEditFormOpen={handleEditFormOpen} handleCustormEmailFormOpen={handleCustormEmailFormOpen} copyReceiptLinkToClipboard={copyReceiptLinkToClipboard} studentDetailsCheck={handleStudentDetailsCheck}/>
-                      ))}
-                  </TableBody>
-              </Table>
-              <TablePagination
-                  rowsPerPageOptions={[10, 25, 50, {label: "All", value: rowCount}]}
-                  component="div"
-                  count={rowCount}
-                  rowsPerPage={rowsPerPage}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                  ActionsComponent={TablePaginationActions}
-                  sx={{ '& *': {margin: "0 !important"}}}
-              />
-          </TableContainer>
-        </Paper>
-        {Boolean(selected.length !== 0) && <AlertDialog title="Are you want to delete this student?" description="If you want to delete the students click Yes. if you don't click No." isDialogOpen={isDialogOpen} getIsDialogOpen={getIsDialogOpen} handleFormSubmitConform={handleFormSubmitConform} />}
-      </Fragment>
-    );
+        </TableContainer>
+      </Paper>
+      {Boolean(selected.length !== 0) && <AlertDialog title="Are you want to delete this student?" description="If you want to delete the students click Yes. if you don't click No." isDialogOpen={isDialogOpen} getIsDialogOpen={getIsDialogOpen} handleFormSubmitConform={handleFormSubmitConform} />}
+    </Fragment>
+  );
 }
 
 export default DataTable;

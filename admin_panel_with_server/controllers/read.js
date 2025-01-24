@@ -135,6 +135,35 @@ class Read{
         }
         return result;
     }
+
+    /**
+     * Dashboard Data Generate Code
+     * 
+     * @returns {string} - Success Message
+     * @since 1.1.0
+     */
+    async getDashboardDataFromDB(){
+        let result, result2;
+        try{
+            const getStudentsSQL = `SELECT
+                                        COUNT(*) AS total_students,
+                                        COUNT(CASE WHEN isDetailsChecked IS NULL THEN 1 END) AS new_students,
+                                        COUNT(CASE WHEN isDetailsChecked = 1 THEN 1 END) AS eligible_students,
+                                        COUNT(CASE WHEN isDetailsChecked = 0 THEN 1 END) AS ineligible_students
+                                    FROM student`;
+            const getGoogleFormsSQL = `SELECT
+                                            COUNT(*) AS total_google_forms
+                                      FROM google_forms_manage`;
+            [result] = await this.#db.promise().query(getStudentsSQL);
+            [result2] = await this.#db.promise().query(getGoogleFormsSQL);
+            return {...result[0], ...result2[0]};
+        } catch (error) {
+            const message = "Error when get counts from database.\n" + error
+            console.log(message);
+            result = message;
+        }
+        return result;
+    }
 }
 
 module.exports= Read;

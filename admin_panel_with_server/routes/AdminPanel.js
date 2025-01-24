@@ -185,25 +185,68 @@ router.post('/bundles/process', upload.single("dataBundleFile") , async (req, re
   const dataSet = await dataBundleHandle.processFile(req.file.path);
   res.status(200).json({message: dataSet, from: 'Main Server'});
 });
-router.post('/bundles/import', upload.none(), async(req, res) => {
-  // console.log(req.body);
-  const dataBundleList = JSON.parse(req.body.bundleDataSetAsJSON);
-  const socketID = req.body.socketID
-  const totalItems = dataBundleList.length;
-  let prograssCount = 0;
+router.post('/bundles/import', upload.none(), async (req, res) => {
+  const io = req.app.get('socket.io');
+  const socketID = req.body.socketID;
 
-  const io = req.app.get("socket.io");
+  try {
+    const dataBundleList = JSON.parse(req.body.bundleDataSetAsJSON);
+    const columnPlaceholders = JSON.parse(req.body.columnPlaceholders);
 
-  const prograssInterval = setInterval(() => {
-    prograssCount += 1;
+    const updatedUserData = dataBundleList.map((student) => {
+        const hasValidValues = Object.values(student).every((value) => value !== '');
+        if (hasValidValues) {
+          return columnPlaceholders.reduce((acc, id, index) => {
+            if (id) {
+              acc[id] = Object.values(student)[index];
+              acc['googleFormID'] = req.body.googleForm;
+              acc['registerDateToday'] = req.body.registerDateToday;
+              acc['sendWelcomeEmail'] = req.body.sendWelcomeEmail; 
+            }
+            return acc;
+          }, {});
+        }
+        return null;
+      })
+      .filter((data) => data !== null);
 
-    io.to(socketID).emit('bundleImportPrograss', Math.round((prograssCount / totalItems) * 100));
+    const totalStudents = updatedUserData.length;
+    let progressCount = 0;
 
-    if (prograssCount >= totalItems) {
-      clearInterval(prograssInterval);
-      res.status(200).json({message: "Submit is Working.", from: 'Main Server'});
+    if (totalStudents === 0) {
+      return res.status(400).json({ message: 'No valid students to process.', from: 'Main Server', error: true });
     }
-  }, totalItems / (1000 / 60));
+
+    io.to(socketID).emit('bundleImportProgress', { message: 'Processing started...', progress: 0 });
+
+    for (const studentData of updatedUserData) {
+      progressCount++;
+      const progressPercentage = Math.round((progressCount / totalStudents) * 100);
+
+      const result = await create.addFromBundleStudent(studentData);
+      io.to(socketID).emit('bundleImportProgress', {
+        message: `Processed student ${progressCount} of ${totalStudents}`,
+        progress: progressPercentage,
+      });
+    }
+
+    io.to(socketID).emit('bundleImportProgress', { message: 'Processing completed!', progress: 100 });
+    return res.status(200).json({ message: 'All students processed successfully.', error: false, from: "Main Server" });
+  } catch (error) {
+    console.error('Error processing students:', error.message);
+    return res.status(500).json({ message: 'An error occurred during processing.', error: true, from: "Main Server" });
+  }
+});
+
+/**
+ * APIs for Dashboard Handles.
+ * 
+ * @since 1.1.0
+ */
+router.get('/dashboard', async (req, res) => {
+  const result = await read.getDashboardDataFromDB();
+  console.log(result);
+  return res.status(200).json({ message: 'All Dashboard Data Successfully.', error: false, from: "Main Server", body: result });
 });
 
 module.exports = router;

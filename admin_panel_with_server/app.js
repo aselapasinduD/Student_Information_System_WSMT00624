@@ -43,8 +43,8 @@ app.use('/admin-login', AuthLogin, adminLoginRouter);
 app.use('/mail', sendMailRouter);
 
 // All Other Request will return to Static Website
-app.get('*', function(req, res, next) {
-    res.status(404).sendFile(path.join(__dirname, 'admin_panel/build/index.html'));
-  });
+app.get('*', function(res) {
+  res.status(404).sendFile(path.join(__dirname, 'admin_panel/build/index.html'));
+});
 
 module.exports = app;

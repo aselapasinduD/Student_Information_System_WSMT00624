@@ -55,7 +55,8 @@ const tableColumnsPlaceholder: columnPlaceholdersType[] = [
     createColumnPlaceholders("address", "Address", true),
     createColumnPlaceholders("wa_number", "WhatsApp Number", false),
     createColumnPlaceholders("referral_number", "Referral Phone Number", true),
-    createColumnPlaceholders("register_at", "Register Date", true)
+    createColumnPlaceholders("register_at", "Register Date", true),
+    createColumnPlaceholders("receipt_url", "Receipt URL", true)
 ]
 
 export interface FetchDataSetAsJSON {
@@ -69,50 +70,56 @@ const ImportBundleOfStudentsForm: React.FC<props> = ({ handleFormClose, collectN
     const [isLodingDataSetAsJSON, checkIsLodingDataSetAsJSON] = useState<boolean>(false);
     const [columnPlaceholders, getColumnPlaceholders] = useState<columnPlaceholdersType[] | undefined>(undefined);
     const [googleFormTitleList, setGoogleFormTitleList] = useState<googleFormTitle[]>([]);
+    const [isUploadingStart, setIsUploadingStart] = useState<{ uploading: boolean, progress: number, serverStatus: string }>({ uploading: false, progress: 0, serverStatus: "" });
 
     const handleExcelFileUploadButton = () => {
         if (excelFileRef && excelFileRef.current) excelFileRef.current.click();
     }
 
-    async function handleBundleFormSubmit(event: React.FormEvent){
+    async function handleBundleFormSubmit(event: React.FormEvent) {
         event.preventDefault();
         const formData = new FormData(event.currentTarget as HTMLFormElement);
-        if(dataSetAsJSON) formData.append("bundleDataSetAsJSON", JSON.stringify(dataSetAsJSON));
-        if(columnPlaceholders) formData.append("columnPlaceholders", JSON.stringify(columnPlaceholders));
-        if(socket.id) formData.append('socketID', socket.id);
-        try{
-            const response = await fetch(baseAPI + "/admin-panel/bundles/import",{
+        if (dataSetAsJSON) formData.append("bundleDataSetAsJSON", JSON.stringify(dataSetAsJSON));
+        if (columnPlaceholders) formData.append("columnPlaceholders", JSON.stringify(columnPlaceholders.map((record) => record.id)));
+        if (socket.id) formData.append('socketID', socket.id);
+        setIsUploadingStart((prevValue) => ({ ...prevValue, uploading: true }));
+        try {
+            const response = await fetch(baseAPI + "/admin-panel/bundles/import", {
                 method: "POST",
                 body: formData
             });
             if (response.ok) {
                 const data = await response.json();
-                console.log(data.message);
+                collectNotifications({ ...data });
+            } else {
+                const error = await response.json();
+                collectNotifications({ ...error });
             }
         } catch (error) {
             console.log("Error fetching bundle data from server: ", error);
+            collectNotifications({ message: "Error fetching bundle data.", from: "Front App", error: true });
         }
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         const fetchStudent = async () => {
-            try{
-                const response = await fetch(baseAPI + "/admin-panel/googleforms/titles",{
+            try {
+                const response = await fetch(baseAPI + "/admin-panel/googleforms/titles", {
                     method: 'GET'
                 });
-                if(!response){
+                if (!response) {
                     throw new Error("Failed to fetch Google Forms titles from the server");
                 }
                 const googleFormsArr = await response.json() as ResponseGoogleFormTitles;
-                if(Boolean(googleFormsArr.body.length)){
-                  setGoogleFormTitleList([...googleFormsArr.body]);
+                if (Boolean(googleFormsArr.body.length)) {
+                    setGoogleFormTitleList([...googleFormsArr.body]);
                 }
-            } catch (error){
+            } catch (error) {
                 console.log("Error fetching Google forms titles from server: ", error);
             }
         }
         fetchStudent();
-    },[]);
+    }, []);
 
     const handleExcelFileUpload = async (event: React.MouseEvent<HTMLInputElement>) => {
         const currentElement = event.currentTarget;
@@ -167,7 +174,7 @@ const ImportBundleOfStudentsForm: React.FC<props> = ({ handleFormClose, collectN
             const usedPlaceholders = newList.map((item) => item.id);
             const allPlaceholdersUsed = tableColumnsPlaceholder.every((placeholder) => usedPlaceholders.includes(placeholder.id));
             if (allPlaceholdersUsed) {
-                collectNotifications({message: "All placeholders are already used.", from: "Front App", error: false});
+                collectNotifications({ message: "All placeholders are already used.", from: "Front App", error: false });
                 return prevList;
             }
 
@@ -231,9 +238,9 @@ const ImportBundleOfStudentsForm: React.FC<props> = ({ handleFormClose, collectN
         });
     }
 
-    function handleRemoveColumnPlaceholder(index: number){
+    function handleRemoveColumnPlaceholder(index: number) {
         getColumnPlaceholders((prevList) => {
-            if(!prevList) return;
+            if (!prevList) return;
             const newList = [...prevList];
             [newList[index]] = [createColumnPlaceholders("", "", false)];
             return newList;
@@ -241,11 +248,12 @@ const ImportBundleOfStudentsForm: React.FC<props> = ({ handleFormClose, collectN
     }
 
     useEffect(() => {
-        socket.on('bundleImportPrograss', (prograss) => {
-            console.log("Prograss: " + prograss);
+        socket.on('bundleImportProgress', (alert) => {
+            console.log(alert);
+            setIsUploadingStart((prevValue) => ({ ...prevValue, progress: alert.progress, serverStatus: alert.message }));
         });
         return () => {
-            socket.off('bundleImportPrograss');
+            socket.off('bundleImportProgress');
         }
     }, []);
 
@@ -254,7 +262,7 @@ const ImportBundleOfStudentsForm: React.FC<props> = ({ handleFormClose, collectN
             <div className="form">
                 <div style={{ width: "90vw" }}>
                     <button type="button" className="btn-close btn-close-red" onClick={handleFormClose} aria-label="Close"></button>
-                    <div className="form-container import-bundles pt-3 pb-4">
+                    <div className="form-container import-bundles pt-3 pb-2">
                         <div className="d-flex justify-content-between">
                             <h4>Import Bundle Of Students</h4>
                             <div className="px-3 d-flex gap-2">
@@ -279,7 +287,7 @@ const ImportBundleOfStudentsForm: React.FC<props> = ({ handleFormClose, collectN
                                     </div>
                                 </div>
                                 :
-                                <TableContainer sx={{ height: "calc(75vh - 24px)" }} className="border-top border-bottom my-2">
+                                <TableContainer sx={{ maxHeight: "calc(70vh - 24px)" }} className="border-top border-bottom my-2">
                                     <Table className="border-start border-end">
                                         <TableHead>
                                             <TableRow>
@@ -327,7 +335,7 @@ const ImportBundleOfStudentsForm: React.FC<props> = ({ handleFormClose, collectN
                                                                     >
                                                                         <ArrowBackIosIcon />
                                                                     </Button>
-                                                                    <p className="m-0 text-center" style={{fontSize: "0.9rem"}}>{columnName.lable}</p>
+                                                                    <p className="m-0 text-center" style={{ fontSize: "0.9rem" }}>{columnName.lable}</p>
                                                                     <div className="d-flex">
                                                                         {columnName.isChangeable && <div className="d-flex">
                                                                             <IconButton
@@ -392,7 +400,6 @@ const ImportBundleOfStudentsForm: React.FC<props> = ({ handleFormClose, collectN
                                                     <TableCell
                                                         key={index}
                                                         align={'left'}
-                                                        // sortDirection={orderBy === column.id ? order : false}
                                                         padding={'checkbox'}
                                                     >
                                                         {columnName}
@@ -421,19 +428,31 @@ const ImportBundleOfStudentsForm: React.FC<props> = ({ handleFormClose, collectN
                                 <div className="input-group input-group-sm">
                                     <span className="input-group-text" id="inputGroup-sizing-sm">Google Form *</span>
                                     <select className="form-select" aria-label="Select the Google Form Here" name="googleForm" required>
-                                        <option selected>Open this select Google Form</option>
+                                        <option value="" selected>Open this select Google Form</option>
                                         {googleFormTitleList.length > 0 && googleFormTitleList.map((googleFormtitlevalue, index) => <option key={index} value={`${googleFormtitlevalue.id}`}>{googleFormtitlevalue.title}</option>)}
                                     </select>
                                 </div>
                                 <div className="form-check d-flex align-items-center gap-2">
-                                    <input className="form-check-input" type="checkbox" value="" id="isRegisterDateToday" />
-                                    <label className="form-check-label" style={{ width: "max-content" }} htmlFor="isRegisterDateToday">
+                                    <input className="form-check-input" type="checkbox" name="registerDateToday" id="registerDateToday" />
+                                    <label className="form-check-label" style={{ width: "max-content" }} htmlFor="registerDateToday">
                                         Register Date Today
                                     </label>
                                 </div>
-                                <button type="submit" className="btn btn-primary">Submit</button>
+                                <div className="form-check d-flex align-items-center gap-2">
+                                    <input className="form-check-input" type="checkbox" name="sendWelcomeEmail" id="sendWelcomeEmail" />
+                                    <label className="form-check-label" style={{ width: "max-content" }} htmlFor="sendWelcomeEmail">
+                                        Send Welcome Email
+                                    </label>
+                                </div>
+                                <button type="submit" className="btn btn-danger">Submit</button>
                             </div>
                         </form>
+                        <div className="mt-2">
+                            <div className="progress" role="progressbar" aria-label="Example with label" aria-valuenow={isUploadingStart.progress} aria-valuemin={0} aria-valuemax={100}>
+                                <div className="progress-bar" style={{ width: `${isUploadingStart.progress}%` }}>{isUploadingStart.progress}%</div>
+                            </div>
+                            <p className="text-success m-0 text-center">{isUploadingStart.serverStatus}</p>
+                        </div>
                     </div>
                 </div>
             </div>

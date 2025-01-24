@@ -6,7 +6,7 @@ import baseAPI from '../states/api';
 
 import { Message } from "../states/type";
 
-interface props{
+interface props {
     handleFormClose: () => void;
     collectNotifications: (notification: Message) => void;
 }
@@ -49,23 +49,23 @@ const listOfColor = [
  * @returns {JSX.Element}
  * @since 1.1.0
  */
-const AddGoogleForm: React.FC<props> = ({handleFormClose, collectNotifications}) =>{
+const AddGoogleForm: React.FC<props> = ({ handleFormClose, collectNotifications }) => {
     const [colorValue, setColorValue] = useState<string>("#ffffff");
     const [isDialogOpen, getIsDialogOpen] = useState<boolean>(false);
     const [formData, getFormData] = useState<FormData | null>(null);
 
-    const submitForm = async(formData: FormData) => {
+    const submitForm = async (formData: FormData) => {
         const response = await fetch(baseAPI + "/admin-panel/googleform", {
             method: "POST",
             body: formData
         })
-        if(response.ok) {
+        if (response.ok) {
             const notification = await response.json() as Message;
             console.log(notification);
             collectNotifications(notification);
         } else {
             console.log("Add Google Form didn't Success");
-            collectNotifications({message: "Add Google Form didn't Success", from: "Server", error: true});
+            collectNotifications({ message: "Add Google Form didn't Success", from: "Server", error: true });
         }
     }
 
@@ -78,9 +78,9 @@ const AddGoogleForm: React.FC<props> = ({handleFormClose, collectNotifications})
     }
 
     const handleFormSubmitConform = async (isConfirm: boolean) => {
-        if(!isConfirm) return;
-        if(!formData) return;
-        if(!isDialogOpen) return;
+        if (!isConfirm) return;
+        if (!formData) return;
+        if (!isDialogOpen) return;
         getIsDialogOpen(false);
         await submitForm(formData);
     }
@@ -90,7 +90,7 @@ const AddGoogleForm: React.FC<props> = ({handleFormClose, collectNotifications})
         setColorValue(event.currentTarget.value);
     }
 
-    return(
+    return (
         <Fragment>
             <div className="form">
                 <div>
@@ -100,18 +100,18 @@ const AddGoogleForm: React.FC<props> = ({handleFormClose, collectNotifications})
                         <form onSubmit={handleSubmit}>
                             <div className="input-group input-group-sm mb-3">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">Title</span>
-                                <input id="title" type="name" className="form-control" placeholder="Google Form Title" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" name="title" maxLength={50} required/>
+                                <input id="title" type="name" className="form-control" placeholder="Google Form Title" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" name="title" maxLength={50} required />
                             </div>
                             <div className="input-group input-group-sm mb-3">
-                                <span className="input-group-text" id="inputGroup-sizing-sm" style={{background: `${colorValue}`}}>Color</span>
+                                <span className="input-group-text" id="inputGroup-sizing-sm" style={{ background: `${colorValue}` }}>Color</span>
                                 <div className="d-flex gap-1 input-group-text">
-                                    {listOfColor.map((color, index) => <button key={index} type="button" className="btn rounded-0" style={{background: `${color.color}`}} onClick={() => setColorValue(`${color.color}`)}></button>)}
-                                    <input id="color" type="color" className="form-control rounded-0 p-0" style={{width: '20px'}} placeholder="Pick A Color" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" name="color" onChange={handleColorPicker} value={colorValue}/>
+                                    {listOfColor.map((color, index) => <button key={index} type="button" className="btn rounded-0" style={{ background: `${color.color}` }} onClick={() => setColorValue(`${color.color}`)}></button>)}
+                                    <input id="color" type="color" className="form-control rounded-0 p-0" style={{ width: '20px' }} placeholder="Pick A Color" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" name="color" onChange={handleColorPicker} value={colorValue} />
                                 </div>
                             </div>
                             <div className="input-group input-group-sm mb-3">
                                 <span className="input-group-text" id="inputGroup-sizing-sm">WhatsApp Group Link</span>
-                                <input id="whatsappGroupLink" type="url" className="form-control" placeholder="Whatsapp Group Link" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" name="whatsappGroupLink"/>
+                                <input id="whatsappGroupLink" type="url" className="form-control" placeholder="Whatsapp Group Link" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" name="whatsappGroupLink" />
                             </div>
                             <div className="d-flex gap-4 mb-4">
                                 <div className="form-check d-flex align-items-center gap-2">

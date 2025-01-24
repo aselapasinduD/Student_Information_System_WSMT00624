@@ -21,9 +21,10 @@
 
 .dash-panel{
   display: grid;
-  grid-template-columns: repeat(auto-fill, 100px);
-  grid-template-rows: repeat(1, 110px);
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  /* grid-template-rows: repeat(1, 110px); */
   gap: 40px;
+  justify-content: center;
 }
 .dash-box{
   display: grid;
