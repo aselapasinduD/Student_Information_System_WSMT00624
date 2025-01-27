@@ -2,7 +2,7 @@ const mysql = require("mysql2");
 const SuperAdmin = require("./superAdmin");
 
 const db_connection = () => {
-    try{
+    try {
         const db = mysql.createConnection({
             host: process.env.MYSQL_HOST,
             user: process.env.MYSQL_USER,
@@ -13,14 +13,15 @@ const db_connection = () => {
         /**
          * Create student Table If Not Exists.
          * 
+         * @version: 1.1.0v
          * @since: 1.0.0v
          */
-        const createStudent = `CREATE TABLE IF NOT EXISTS student (d
+        const createStudent = `CREATE TABLE IF NOT EXISTS student (
             id INT NOT NULL AUTO_INCREMENT,
             full_name VARCHAR(50) NOT NULL,
             email VARCHAR(320) NOT NULL,
             number_of_mails INT NOT NULL DEFAULT 0,
-            wa_number BIGINT(12) UNIQUE NOT NULL,
+            wa_number BIGINT NOT NULL,
             register_at DATETIME,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -43,13 +44,13 @@ const db_connection = () => {
             ADD COLUMN IF NOT EXISTS address VARCHAR(200) NULL,
             ADD COLUMN IF NOT EXISTS receiptURL VARCHAR(100) NULL,
             ADD COLUMN IF NOT EXISTS isDetailsChecked BOOLEAN NULL,
-            MODIFY COLUMN wa_number BIGINT(12) UNIQUE NOT NULL,
             ADD CONSTRAINT fk_google_form_id FOREIGN KEY (google_form_id) REFERENCES google_forms_manage(id)
         `;
 
         /**
          * Create refers_to Table If Not Exists.
-         * 
+         *
+         * @version: 1.1.0v
          * @since: 1.0.0v
          */
         const createRefersTo = `CREATE TABLE IF NOT EXISTS refers_to (
@@ -101,7 +102,7 @@ const db_connection = () => {
          * @since: 1.0.0v
          */
         db.query(createStudent, (err, result) => {
-            try{
+            try {
                 if (err) throw err;
                 console.log('Student Table Created.\n', result);
             } catch (error) {
@@ -115,7 +116,7 @@ const db_connection = () => {
          * @since: 1.0.0v
          */
         db.query(createRefersTo, (err, result) => {
-            try{
+            try {
                 if (err) throw err;
                 console.log('refers_to Table Created.\n', result);
             } catch (error) {
@@ -129,7 +130,7 @@ const db_connection = () => {
          * @since: 1.0.0v
          */
         db.query(createAdmin, (err, result) => {
-            try{
+            try {
                 if (err) throw err;
                 console.log('super_admin Table Created.\n', result);
             } catch (error) {
@@ -143,7 +144,7 @@ const db_connection = () => {
          * @since: 1.1.0v
          */
         db.query(createGoogleFormsManage, (err, result) => {
-            try{
+            try {
                 if (err) throw err;
                 console.log('google_forms_manage Table Created.\n', result);
             } catch (error) {
@@ -157,7 +158,7 @@ const db_connection = () => {
          * @since: 1.1.0v
          */
         db.query(alterStudentTable, (err, result) => {
-            try{
+            try {
                 if (err) throw err;
                 console.log('Student Table Altered.\n', result);
             } catch (error) {
@@ -194,12 +195,12 @@ const db_connection = () => {
     }
 };
 
-class db_class{
+class db_class {
     #db;
-    constructor(){
+    constructor() {
         this.#db = db_connection();
     }
-    connection(){
+    connection() {
         return this.#db;
     }
 }

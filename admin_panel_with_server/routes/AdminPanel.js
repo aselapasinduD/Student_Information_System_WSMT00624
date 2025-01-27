@@ -45,19 +45,19 @@ router.get('/googlform', function(req, res, next) {
 router.get('/students', async (req, res) => {
   const students = await read.getStudents();
   const makeStudent = async () => {
-    for(let i = 0; i < students.length; i++) {
+    for (let i = 0; i < students.length; i++) {
       const referralStudents = await read.getReferralStudents(students[i].id);
       const GoogleFormColor = await read.getGoogleFormsColor(students[i].id);
       students[i].referral_student = referralStudents;
       students[i].number_of_referrals = referralStudents.length;
-      if(GoogleFormColor){
+      if (GoogleFormColor) {
         students[i].google_form_color = GoogleFormColor;
       }
     };
   }
   students.reverse();
   await makeStudent();
-  res.status(200).json({message: 'Get student success.', from: 'Main Server', body:students});
+  res.status(200).json({ message: 'Get student success.', from: 'Main Server', body: students });
 });
 /**
  * 
@@ -67,19 +67,19 @@ router.get('/students', async (req, res) => {
 router.post('/student', upload.none(), async (req, res) => {
   const result = await create.addStudent(req.body);
   // console.log(req.body);
-  if (result === 'ER_DUP_ENTRY') return res.status(200).json({message: "Phone Number Duplicate Error!", from: 'Main Server', error: true});
-  res.status(200).json({message: result, from: 'Main Server'});
+  if (result === 'ER_DUP_ENTRY') return res.status(200).json({ message: "Phone Number Duplicate Error!", from: 'Main Server', error: true });
+  res.status(200).json({ message: result, from: 'Main Server' });
 });
 router.put('/student', upload.none(), async (req, res) => {
   // console.log(req.body);
   const result = await update.udpateStudent(req.body);
   // console.log(result);
-  res.status(200).json({message: result, from: 'Main Server'});
+  res.status(200).json({ message: result, from: 'Main Server' });
 });
 router.delete('/student', async (req, res) => {
   const result = await _delete.deleteStudent(req.body);
   // console.log(result);
-  res.status(200).json({message: result, from: 'Main Server'});
+  res.status(200).json({ message: result, from: 'Main Server' });
 });
 /**
  * 
@@ -88,7 +88,7 @@ router.delete('/student', async (req, res) => {
 router.delete('/student/detailscheck', async (req, res) => {
   const result = await update.udpateStudentDetailsCheck(req.body);
   // console.log(result);
-  res.status(200).json({message: result, from: 'Main Server'});
+  res.status(200).json({ message: result, from: 'Main Server' });
 });
 
 /**
@@ -96,41 +96,58 @@ router.delete('/student/detailscheck', async (req, res) => {
  * 
  * @since 1.1.0
  */
-router.post('/googleform', upload.none() , async (req, res) => {
+router.post('/googleform', upload.none(), async (req, res) => {
   const result = await create.addGoogleForm(req.body);
   // if (result === 'ER_DUP_ENTRY') return res.status(200).json({message: "Phone Number Duplicate Error!", from: 'Main Server', error: true});
-  res.status(200).json({message: result, from: 'Main Server'});
+  res.status(200).json({ message: result, from: 'Main Server' });
 });
 router.get('/googleforms', async (req, res) => {
   const googleForms = await read.getGoogleForms();
-  res.status(200).json({message: 'Get google forms success.', from: 'Main Server', body:googleForms});
+  res.status(200).json({ message: 'Get google forms success.', from: 'Main Server', body: googleForms });
 });
 router.get('/googleforms/titles', async (req, res) => {
   const googleForms = await read.getGoogleFormsTitles();
-  res.status(200).json({message: 'Get google forms titles success.', from: 'Main Server', body:googleForms});
+  res.status(200).json({ message: 'Get google forms titles success.', from: 'Main Server', body: googleForms });
 });
 router.get('/googleform/code', async (req, res) => {
-  const {id} = req.query;
+  const { id } = req.query;
   const googleFormSlug = await read.getGoogleFormSlug(id);
   const googleFormCode = `
     function sendDataToAPI(e) {
       const sheet = e.range.getSheet();
       const row = e.range.getRow();
+
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
       const data = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
 
       const apiUrl = '${process.env.AUTOMATION_SERVER_HOST}/api/${process.env.AUTOMATION_SERVER_ACCESS_KEY}/${googleFormSlug}/student';
 
-      const referral_number = data[4] === ''? "" : "94" + parseInt(data[4]).toString();
-
       const payload = {
         student: {
-          FullName: data[2],
-          Email: data[1],
-          WANumber: "94" + parseInt(data[3]).toString(),
-          ReferralWA: referral_number,
-          RegisterAt: data[0]
+          FullName: getDataByPartialHeader(headers, data, ['name']),
+          Email: getDataByPartialHeader(headers, data, ['email address']),
+          WANumber: "94" + parseInt(getDataByPartialHeader(headers, data, ['whatsapp'])).toString(),
+          RegisterAt: getDataByPartialHeader(headers, data, ['timestamp'])
         }
       };
+
+      // Add ReferralWA if it exists
+      const referralNumber = getDataByPartialHeader(headers, data,['referral'], ['whatsapp']);
+      if (referralNumber && referralNumber.trim() !== '') {
+        payload.student.ReferralWA = "94" + parseInt(referralNumber).toString();
+      }
+
+      // Add Address if it exists
+      const address = getDataByPartialHeader(headers, data, ['address'], ['email']);
+      if (address && address.trim() !== '') {
+        payload.student.Address = address;
+      }
+
+      // Add ReceiptURL if it exists
+      const receiptURL = getDataByPartialHeader(headers, data, ['receipt']);
+      if (receiptURL && receiptURL.trim() !== '') {
+        payload.student.ReceiptURL = receiptURL;
+      }
 
       const options = {
         method: 'post',
@@ -154,25 +171,64 @@ router.get('/googleform/code', async (req, res) => {
 
     function onFormSubmit(e) {
       sendDataToAPI(e);
-    }`
-  res.status(200).json({message: 'Get Google Form code success.', from: 'Main Server', body: googleFormCode});
+    }
+
+    const getDataByPartialHeader = (headers, data, includeKeys, excludeKeys = []) => {
+      if (typeof includeKeys === 'string') includeKeys = [includeKeys];
+      if (typeof excludeKeys === 'string') excludeKeys = [excludeKeys];
+
+      // Try to find an exact match first
+      for (const includeKey of includeKeys) {
+        const exactMatchIndex = headers.findIndex(header => {
+          const headerLower = header.trim().toLowerCase();
+          const includeLower = includeKey.toLowerCase();
+
+          const isIncluded = headerLower === includeLower;
+
+          const isExcluded = !isIncluded && excludeKeys.some(excludeKey => 
+            headerLower.includes(excludeKey.toLowerCase())
+          );
+          return isIncluded || (headerLower.includes(includeLower) && !isExcluded);
+        });
+        if (exactMatchIndex !== -1) return data[exactMatchIndex];
+      }
+
+      // If no exact match, try partial matches
+      for (const includeKey of includeKeys) {
+        const partialMatchIndex = headers.findIndex(header => {
+          const headerLower = header.trim().toLowerCase();
+          const includeLower = includeKey.toLowerCase();
+
+          const isIncluded = headerLower.includes(includeLower);
+
+          const isExcluded = !isIncluded && excludeKeys.some(excludeKey => 
+            headerLower.includes(excludeKey.toLowerCase())
+          );
+          return isIncluded && !isExcluded;
+        });
+        if (partialMatchIndex !== -1) return data[partialMatchIndex];
+      }
+
+      return null;
+    };`
+  res.status(200).json({ message: 'Get Google Form code success.', from: 'Main Server', body: googleFormCode });
 });
 router.get('/googleform/link', async (req, res) => {
-  const {id} = req.query;
+  const { id } = req.query;
   const googleFormSlug = await read.getGoogleFormSlug(id);
   // console.log(googleFormSlug);
   const googleFormCodeLink = `${process.env.AUTOMATION_SERVER_HOST}/api/${process.env.AUTOMATION_SERVER_ACCESS_KEY}/${googleFormSlug}/student`;
-  res.status(200).json({message: 'Get google forms success.', from: 'Main Server', body: googleFormCodeLink});
+  res.status(200).json({ message: 'Get google forms success.', from: 'Main Server', body: googleFormCodeLink });
 });
-router.put('/googleform', upload.none() , async (req, res) => {
+router.put('/googleform', upload.none(), async (req, res) => {
   const result = await update.udpateGoogleForm(req.body);
   // console.log(req.body);
-  res.status(200).json({message: result, from: 'Main Server'});
+  res.status(200).json({ message: result, from: 'Main Server' });
 });
 router.delete('/googleform', async (req, res) => {
   const result = await _delete.deleteGoogleForm(req.body);
   // console.log(result);
-  res.status(200).json({message: result, from: 'Main Server'});
+  res.status(200).json({ message: result, from: 'Main Server' });
 });
 
 /**
@@ -180,10 +236,10 @@ router.delete('/googleform', async (req, res) => {
  * 
  * @since 1.1.0
  */
-router.post('/bundles/process', upload.single("dataBundleFile") , async (req, res) => {
+router.post('/bundles/process', upload.single("dataBundleFile"), async (req, res) => {
   console.log(req.file.path);
   const dataSet = await dataBundleHandle.processFile(req.file.path);
-  res.status(200).json({message: dataSet, from: 'Main Server'});
+  res.status(200).json({ message: dataSet, from: 'Main Server' });
 });
 router.post('/bundles/import', upload.none(), async (req, res) => {
   const io = req.app.get('socket.io');
@@ -194,20 +250,20 @@ router.post('/bundles/import', upload.none(), async (req, res) => {
     const columnPlaceholders = JSON.parse(req.body.columnPlaceholders);
 
     const updatedUserData = dataBundleList.map((student) => {
-        const hasValidValues = Object.values(student).every((value) => value !== '');
-        if (hasValidValues) {
-          return columnPlaceholders.reduce((acc, id, index) => {
-            if (id) {
-              acc[id] = Object.values(student)[index];
-              acc['googleFormID'] = req.body.googleForm;
-              acc['registerDateToday'] = req.body.registerDateToday;
-              acc['sendWelcomeEmail'] = req.body.sendWelcomeEmail; 
-            }
-            return acc;
-          }, {});
-        }
-        return null;
-      })
+      const hasValidValues = Object.values(student).every((value) => value !== '');
+      if (hasValidValues) {
+        return columnPlaceholders.reduce((acc, id, index) => {
+          if (id) {
+            acc[id] = Object.values(student)[index];
+            acc['googleFormID'] = req.body.googleForm;
+            acc['registerDateToday'] = req.body.registerDateToday;
+            acc['sendWelcomeEmail'] = req.body.sendWelcomeEmail;
+          }
+          return acc;
+        }, {});
+      }
+      return null;
+    })
       .filter((data) => data !== null);
 
     const totalStudents = updatedUserData.length;
@@ -247,6 +303,16 @@ router.get('/dashboard', async (req, res) => {
   const result = await read.getDashboardDataFromDB();
   console.log(result);
   return res.status(200).json({ message: 'All Dashboard Data Successfully.', error: false, from: "Main Server", body: result });
+});
+
+/**
+ * APIs for PDF Generate.
+ * 
+ * @since 1.1.0
+ */
+router.post('/generatepdfs', upload.single("uploadPDF"), (req, res) => {
+  const pdfPath = req.file.path;
+  return res.status(200).json({ message: pdfPath, error: false, from: "Main Server" });
 });
 
 module.exports = router;

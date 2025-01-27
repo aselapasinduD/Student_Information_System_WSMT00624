@@ -27,6 +27,7 @@ import FormControl from '@mui/material/FormControl';
 import Chip from '@mui/material/Chip';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Popover from '@mui/material/Popover';
+import Button from '@mui/material/Button';
 
 // MUI Icons
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -52,6 +53,7 @@ import AlertDialog from "./alertDialog";
 
 import { Student, Message } from '../states/type';
 import baseAPI from '../states/api';
+import { Console } from 'console';
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -122,6 +124,10 @@ const initialFilterOptions: FilterOptions[] = [
   {
     id: "address",
     value: null
+  },
+  {
+    id: "isDetailsChecked",
+    value: null
   }
 ]
 
@@ -156,6 +162,13 @@ function filter(rows: readonly Student[], options: FilterOptions[]) {
     if (record.address) return record.address.toLowerCase().includes((options[5].value ? options[5].value : "").toLowerCase());
     if (options[5].value) return false;
     return true
+  });
+  // Fillter is details checked
+  filterdRows = filterdRows.filter((record) => {
+    if (options[6].value === "true") return record.isDetailsChecked;
+    if (options[6].value === "false") return record.isDetailsChecked === null ? false : !record.isDetailsChecked;
+    if (options[6].value === "") return record.isDetailsChecked === null;
+    return true;
   });
   return filterdRows;
 }
@@ -209,6 +222,7 @@ const FilterMenus = (props: filterMenus) => {
   const [status, setStatus] = React.useState<string[]>([]);
   const [valueAddress, getValueAddress] = useState<string>("");
   const [isNonAddressChecked, setIsNonAddressChecked] = useState<boolean>(false);
+  const [isDetailsChecked, setIsDetailsChecked] = useState<string | null>(null);
 
 
   const handleIdChange = (value: string) => {
@@ -236,6 +250,7 @@ const FilterMenus = (props: filterMenus) => {
     setGoogleFormTitle("");
     setStatus([]);
     getValueAddress("");
+    setIsDetailsChecked(null);
   }
 
   useEffect(() => {
@@ -288,11 +303,15 @@ const FilterMenus = (props: filterMenus) => {
             id: "address",
             value: valueAddress === "" ? null : valueAddress,
             options: { NoN: isNonAddressChecked }
+          },
+          {
+            id: "isDetailsChecked",
+            value: isDetailsChecked
           }
         ]
       );
     }
-  }, [valueFullName, valueNumberOfReferrals, valueRegisterAt, isBelowChecked, open, setfilteroptions, googleFormTitle, googleFormTitleList, status, valueAddress, isNonAddressChecked]);
+  }, [isDetailsChecked, valueFullName, valueNumberOfReferrals, valueRegisterAt, isBelowChecked, open, setfilteroptions, googleFormTitle, googleFormTitleList, status, valueAddress, isNonAddressChecked]);
 
   return (
     <Menu
@@ -319,6 +338,17 @@ const FilterMenus = (props: filterMenus) => {
       }}
       {...props}
     >
+      <MenuItem sx={{ display: "flex", gap: "4px" }}>
+        <Button variant="contained" color="success" onClick={() => setIsDetailsChecked("true")}>
+          Complete
+        </Button>
+        <Button variant="contained" color="error" onClick={() => setIsDetailsChecked("false")}>
+          Uncomplete
+        </Button>
+        <Button variant="outlined" color="inherit" onClick={() => setIsDetailsChecked("")}>
+          None
+        </Button>
+      </MenuItem>
       <MenuItem onKeyDown={(e) => e.stopPropagation()}>
         <TextField name="full_name" hiddenLabel label="Full Name" inputProps={{ pattern: "[0-9]{11}", value: valueFullName }} size='small' margin='none' sx={{ width: "100%" }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleIdChange(e.target.value)} />
       </MenuItem>

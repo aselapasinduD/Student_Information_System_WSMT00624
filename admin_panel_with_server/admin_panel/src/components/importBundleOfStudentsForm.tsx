@@ -263,12 +263,7 @@ const ImportBundleOfStudentsForm: React.FC<props> = ({ handleFormClose, collectN
                 <div style={{ width: "90vw" }}>
                     <button type="button" className="btn-close btn-close-red" onClick={handleFormClose} aria-label="Close"></button>
                     <div className="form-container import-bundles pt-3 pb-2">
-                        <div className="d-flex justify-content-between">
-                            <h4>Import Bundle Of Students</h4>
-                            <div className="px-3 d-flex gap-2">
-                                <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
-                            </div>
-                        </div>
+                        <h4>Import Bundle Of Students</h4>
                         <form onSubmit={handleBundleFormSubmit}>
                             {!Boolean(dataSetAsJSON) ?
                                 <div>
