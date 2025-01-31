@@ -106,7 +106,7 @@ const AdminPanelLayout: React.FC<Props> = ({ notification }) => {
                     </button>
                 )}
             </div>
-            <h4>Admin Panel 1.0v</h4>
+            <h4>Admin Panel 1.1v</h4>
             <div className='dash-panel mb-2'>
                 <DashBox title='Students' numbers={dashboardData.total_students} backgroundColor='#f8b34a' />
                 <DashBox title='Google Forms' numbers={dashboardData.total_google_forms} backgroundColor='#56c2fa' />

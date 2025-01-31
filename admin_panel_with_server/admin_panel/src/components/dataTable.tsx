@@ -53,7 +53,6 @@ import AlertDialog from "./alertDialog";
 
 import { Student, Message } from '../states/type';
 import baseAPI from '../states/api';
-import { Console } from 'console';
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -488,6 +487,7 @@ interface EnhancedTableToolbarProps {
   setFilterOptions: (value: FilterOptions[]) => void;
   handleImportBundleOfStudentsFormOpen: () => void;
   handleGeneratePDFsFormOpen: () => void;
+  handleGenerateCertificatesFormOpen: () => void;
 }
 
 /**
@@ -498,7 +498,16 @@ interface EnhancedTableToolbarProps {
  * @since 1.0.0
  */
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-  const { numSelected, handleAddFormOpen, handleDelete, handleCustomeEmailForAll, setFilterOptions, handleImportBundleOfStudentsFormOpen, handleGeneratePDFsFormOpen } = props;
+  const {
+    numSelected,
+    handleAddFormOpen,
+    handleDelete,
+    handleCustomeEmailForAll,
+    setFilterOptions,
+    handleImportBundleOfStudentsFormOpen,
+    handleGeneratePDFsFormOpen,
+    handleGenerateCertificatesFormOpen
+  } = props;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const open = Boolean(anchorEl);
@@ -544,6 +553,20 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
       )}
       {numSelected > 0 ? (
         <Fragment>
+          <Tooltip title="Generate Certificates">
+            <IconButton
+              onClick={handleGenerateCertificatesFormOpen}
+            >
+              <DocumentScannerIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Generate PDFs">
+            <IconButton
+              onClick={handleGeneratePDFsFormOpen}
+            >
+              <PictureAsPdfIcon />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Delete">
             <IconButton
               onClick={handleDelete}
@@ -567,13 +590,6 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
       ) : (
 
         <Fragment>
-          <Tooltip title="Import Bundle of Students">
-            <IconButton
-              onClick={handleGeneratePDFsFormOpen}
-            >
-              <PictureAsPdfIcon />
-            </IconButton>
-          </Tooltip>
           <Tooltip title="Import Bundle of Students">
             <IconButton
               onClick={handleImportBundleOfStudentsFormOpen}
@@ -826,6 +842,8 @@ interface rowStudents {
   handleImportBundleOfStudentsFormOpen: () => void;
   refetchStudents: Dispatch<SetStateAction<boolean>>;
   handleGeneratePDFsFormOpen: () => void;
+  selectedStudents: (value: readonly number[]) => void;
+  handleGenerateCertificatesFormOpen: () => void;
 }
 
 interface ColumnNames {
@@ -910,7 +928,18 @@ const columnNames: readonly ColumnNames[] = [
  * @version 1.1.0
  * @since 1.0.0
  */
-const DataTable: React.FC<rowStudents> = ({ rows, handleAddFormOpen, handleEditFormOpen, handleCustormEmailFormOpen, collectNotifications, handleImportBundleOfStudentsFormOpen, handleGeneratePDFsFormOpen, refetchStudents }) => {
+const DataTable: React.FC<rowStudents> = ({
+  rows,
+  handleAddFormOpen,
+  handleEditFormOpen,
+  handleCustormEmailFormOpen,
+  collectNotifications,
+  handleImportBundleOfStudentsFormOpen,
+  handleGeneratePDFsFormOpen,
+  refetchStudents,
+  selectedStudents,
+  handleGenerateCertificatesFormOpen
+}) => {
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<keyof Student | Unassigned>('id');
   const [page, setPage] = useState(0);
@@ -921,7 +950,7 @@ const DataTable: React.FC<rowStudents> = ({ rows, handleAddFormOpen, handleEditF
   const [isDialogOpen, getIsDialogOpen] = useState<boolean>(false);
   const numSelected = selected.length;
 
-  // console.log(filterOptions);
+  useEffect(() => (selectedStudents(selected)), [selected]);
 
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Student) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -1074,6 +1103,7 @@ const DataTable: React.FC<rowStudents> = ({ rows, handleAddFormOpen, handleEditF
           setFilterOptions={setFilterOptions}
           handleImportBundleOfStudentsFormOpen={handleImportBundleOfStudentsFormOpen}
           handleGeneratePDFsFormOpen={handleGeneratePDFsFormOpen}
+          handleGenerateCertificatesFormOpen={handleGenerateCertificatesFormOpen}
         />
         <TableContainer>
           <Table aria-label="collapsible table" size={"small"}>

@@ -1,6 +1,9 @@
 const express = require('express');
 const path = require('path');
 const upload = require("./multer");
+const { PDFDocument, rgb } = require("pdf-lib");
+const fs = require("fs");
+const fontKit = require("fontkit");
 
 const router = express.Router();
 // const upload = multer();
@@ -310,9 +313,194 @@ router.get('/dashboard', async (req, res) => {
  * 
  * @since 1.1.0
  */
-router.post('/generatepdfs', upload.single("uploadPDF"), (req, res) => {
-  const pdfPath = req.file.path;
-  return res.status(200).json({ message: pdfPath, error: false, from: "Main Server" });
+const currentDate = new Date();
+const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+
+const chunkArray = (array, chunks) => {
+  const result = [];
+  const chunkSize = Math.ceil(array.length / chunks);
+
+  for (let i = 0; i < chunks; i++) {
+    const start = i * chunkSize;
+    const end = start + chunkSize;
+    result.push(array.slice(start, end));
+  }
+  return result;
+}
+
+router.post('/generatepdfs', upload.single("uploadPDF"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No Any File Uploaded. Check your internet connection or try again.", error: true, from: "Main Server" });
+    const listOfStudents = JSON.parse(req.body.selectedStudents).sort((a, b) => (a - b));
+
+    if (!listOfStudents || listOfStudents.length === 0) return res.status(400).json({ message: "You need to select one or more students.", error: true, from: "Main Server" });
+
+    let { placeholderAmount, addressLines, placeholderInsideGap, placeholdersGap, pdfPageActualSize, pdfFontWeight, pdfFontSize, pdfLineHeight } = JSON.parse(req.body.placeholderConfigurations);
+    const placeholderPositions = JSON.parse(req.body.placeholderPositions);
+
+    const pdfTemplatePath = req.file.path;
+    const pdfTemplateBytes = fs.readFileSync(pdfTemplatePath);
+
+    const PDFDOC = await PDFDocument.create();
+    PDFDOC.registerFontkit(fontKit);
+    const PDFFontByets = fs.readFileSync(path.join(__dirname, "../resources/fonts/", `pdf-font-${pdfFontWeight.toLowerCase() ?? "normal"}.ttf`));
+    const PDFFont = await PDFDOC.embedFont(PDFFontByets);
+    pdfFontSize = pdfFontSize ?? 14;
+    const lineHeight = pdfFontSize * pdfLineHeight ?? 1;
+
+    const PDFTEMPLATEDOC = await PDFDocument.load(pdfTemplateBytes);
+
+    for (let i = 1; i <= Math.ceil(listOfStudents.length / placeholderPositions.length); i++) {
+      const [pdfTemplatePage] = await PDFDOC.copyPages(PDFTEMPLATEDOC, [0]);
+      const { width, height } = pdfTemplatePage.getSize();
+
+      for (let index = 0; index < placeholderPositions.length; index++) {
+        const studentIDsIndex = (i - 1) * placeholderPositions.length + index;
+        if (listOfStudents.length <= studentIDsIndex) continue;
+
+        const [{ full_name, address, wa_number }] = await read.getStudentById(listOfStudents[studentIDsIndex]);
+        if (!address) continue;
+
+        const formatedAddress = chunkArray(address.split(", "), addressLines)
+          .filter(chunk => chunk.length > 0)
+          .map(chunk => chunk.join(", "));
+
+        const studentAddress = [`${full_name}`, formatedAddress, `${wa_number}`];
+
+        const totalLines = studentAddress.reduce((acc, curr) => acc + (Array.isArray(curr) ? curr.length : 1), 0);
+        const elementGaps = (studentAddress.length - 1) * placeholderInsideGap;
+        const totalHeight = (totalLines * lineHeight) + elementGaps;
+
+        let currentVerticalOffset = 0;
+
+        // Draw each line of student information
+        studentAddress.forEach((line) => {
+          const lines = Array.isArray(line) ? line : [line];
+          lines.forEach((text) => {
+            pdfTemplatePage.drawText(text, {
+              x: placeholderPositions[index].x,
+              y: height - (pdfFontSize + placeholderPositions[index].y - totalHeight / 2) - currentVerticalOffset,
+              font: PDFFont,
+              size: pdfFontSize,
+              color: rgb(0, 0, 0),
+            });
+            currentVerticalOffset += lineHeight;
+          });
+          currentVerticalOffset += placeholderInsideGap;
+        });
+      }
+      pdfTemplatePage.drawText(`Page ${i}`, {
+        x: width - 50,
+        y: height - 20,
+        size: 12,
+        color: rgb(0, 0, 0)
+      });
+
+      PDFDOC.addPage(pdfTemplatePage);
+    }
+
+    const PDFDOCBYETS = await PDFDOC.save();
+
+    const uniqueSuffix = formattedDate + '-' + Math.round(Math.random() * 1E9);
+    const generatePDFName = "generated-address-pdf-" + uniqueSuffix;
+    const generatedPDFPath = path.join(__dirname, "../storage/PDFs", generatePDFName);
+
+    fs.writeFileSync(generatedPDFPath, PDFDOCBYETS);
+
+    res.download(generatedPDFPath, generatePDFName, (error) => {
+      if (error) {
+        console.error("Error Sending File: ", error);
+        res.status(500).json({ message: "Error sending file! Try Again.", error: true, from: "Main Server" });
+      }
+      fs.unlinkSync(pdfTemplatePath);
+      fs.unlinkSync(generatedPDFPath);
+    });
+
+  } catch (error) {
+    const message = "Error processing PDF! Try Again."
+    console.log(message, error);
+    res.status(500).json({ message: message, error: true, from: "Main Server" });
+  }
+});
+
+router.post('/generatecertificate', upload.single("uploadPDF"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No Any File Uploaded. Check your internet connection or try again.", error: true, from: "Main Server" });
+    const listOfStudents = JSON.parse(req.body.selectedStudents).sort((a, b) => (a - b));
+
+    if (!listOfStudents || listOfStudents.length === 0) return res.status(400).json({ message: "You need to select one or more students.", error: true, from: "Main Server" });
+
+    let { pdfPageActualSize, pdfFontWeight, pdfFontSize, pdfTextTransform } = JSON.parse(req.body.placeholderConfigurations);
+    const placeholderPositions = JSON.parse(req.body.placeholderPositions);
+
+    const pdfTemplatePath = req.file.path;
+    const pdfTemplateBytes = fs.readFileSync(pdfTemplatePath);
+
+    const PDFDOC = await PDFDocument.create();
+    PDFDOC.registerFontkit(fontKit);
+    const PDFFontByets = fs.readFileSync(path.join(__dirname, "../resources/fonts/", `pdf-font-${pdfFontWeight.toLowerCase() ?? "normal"}.ttf`));
+    const PDFFont = await PDFDOC.embedFont(PDFFontByets);
+    pdfFontSize = pdfFontSize ?? 14;
+
+    const PDFTEMPLATEDOC = await PDFDocument.load(pdfTemplateBytes);
+
+    for (let i = 1; i <= listOfStudents.length; i++) {
+      const [pdfTemplatePage] = await PDFDOC.copyPages(PDFTEMPLATEDOC, [0]);
+      const { width, height } = pdfTemplatePage.getSize();
+
+      const [{ full_name }] = await read.getStudentById(listOfStudents[i - 1]);
+
+      const listOfTextTransforms = ['Aa', 'AA', "aa"];
+      let studentName = full_name;
+      switch (listOfTextTransforms.indexOf(pdfTextTransform)) {
+        case 0:
+          studentName = studentName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+          break;
+        case 1:
+          studentName = studentName.toUpperCase();
+          break;
+        case 2:
+          studentName = studentName.toLowerCase();
+          break;
+        default:
+          studentName = studentName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+      }
+
+      const textWidth = PDFFont.widthOfTextAtSize(studentName, pdfFontSize);
+
+      pdfTemplatePage.drawText(studentName, {
+        x: placeholderPositions.x - (textWidth / 2),
+        y: height - placeholderPositions.y - pdfFontSize,
+        font: PDFFont,
+        size: pdfFontSize,
+        color: rgb(0, 0, 0)
+      });
+
+      PDFDOC.addPage(pdfTemplatePage);
+    }
+
+    const PDFDOCBYETS = await PDFDOC.save();
+
+    const uniqueSuffix = formattedDate + '-' + Math.round(Math.random() * 1E9);
+    const generatePDFName = "generated-certificate-pdf-" + uniqueSuffix;
+    const generatedPDFPath = path.join(__dirname, "../storage/PDFs", generatePDFName);
+
+    fs.writeFileSync(generatedPDFPath, PDFDOCBYETS);
+
+    res.download(generatedPDFPath, generatePDFName, (error) => {
+      if (error) {
+        console.error("Error Sending File: ", error);
+        res.status(500).json({ message: "Error sending file: ", error: true, from: "Main Server" });
+      }
+      fs.unlinkSync(pdfTemplatePath);
+      fs.unlinkSync(generatedPDFPath);
+    });
+
+  } catch (error) {
+    const message = "Error processing PDF"
+    console.log(message, error);
+    res.status(500).json({ message: message, error: true, from: "Main Server" });
+  }
 });
 
 module.exports = router;

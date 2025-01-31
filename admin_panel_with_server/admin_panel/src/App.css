@@ -18,7 +18,7 @@
 }
 
 .admin-panel {
-  margin: 20px 40px;
+  margin: 10px 20px;
 }
 
 .dash-panel {
@@ -137,15 +137,38 @@
 }
 
 /* PDFs Generate Section */
-.btn-download-pdfs{
- top: 40px;
- transition: all 0.4s linear;
+.btn-download-pdfs {
+  top: 40px;
+  transition: all 0.4s linear;
 }
-.btn-generate-pdfs{
+
+.btn-generate-pdfs {
   top: 0;
   transition: all 0.4s linear;
 }
 
+.pdf-placeholder-card {
+  width: max-content;
+  cursor: grab;
+  user-select: none;
+}
+
+.pdf-placeholder-card:active {
+  cursor: grabbing;
+}
+
+@media screen and (min-width: 768px) {
+  .admin-panel {
+    margin: 20px 40px;
+  }
+}
+
+@media screen and (min-width: 1920px) {
+  .admin-panel {
+    margin: auto;
+    max-width: 1920px;
+  }
+}
 
 /* Track */
 ::-webkit-scrollbar {

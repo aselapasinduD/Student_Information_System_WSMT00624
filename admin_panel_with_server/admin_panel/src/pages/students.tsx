@@ -6,6 +6,7 @@ import EditStudentForm from '../components/editStudentForm';
 import CustomEmail from '../components/customeEmail';
 import ImportBundleOfStudentsForm from '../components/importBundleOfStudentsForm';
 import GeneratePDFs from '../components/GeneratePDFs';
+import GenerateCertificates from '../components/GenerateCertificates';
 
 import { Message, Student } from '../states/type';
 import baseAPI from '../states/api';
@@ -93,6 +94,8 @@ const Students: React.FC<props> = ({ collectNotifications }) => {
     const [ImportBundleOfStudentsFormOpen, isImportBundleOfStudentsFormOpen] = useState<boolean>(false);
     const [refetchStudents, setRetechStudents] = useState<boolean>(false);
     const [GeneratePDFsFormOpen, setGeneratePDFsFormOpen] = useState<boolean>(false);
+    const [selectedStudents, getSelectedStudents] = useState<readonly number[]>([]);
+    const [GenerateCertificatesFormOpen, setGenerateCertificatesFormOpen] = useState<boolean>(false);
 
     /**
      * Handle Api for getting student data.
@@ -151,15 +154,33 @@ const Students: React.FC<props> = ({ collectNotifications }) => {
     const handleGeneratePDFsFormClose = () => {
         setGeneratePDFsFormOpen(false);
     }
+    const handleGenerateCertificatesFormOpen = () => {
+        setGenerateCertificatesFormOpen(true);
+    }
+    const handleGenerateCertificatesFormClose = () => {
+        setGenerateCertificatesFormOpen(false);
+    }
 
     return (
         <>
-            {students ? <DataTable rows={students} handleAddFormOpen={handleAddFormOpen} handleEditFormOpen={handleEditFormOpen} handleCustormEmailFormOpen={handleCustomeEmailFormOpen} collectNotifications={collectNotifications} handleImportBundleOfStudentsFormOpen={handleImportBundleOfStudentsFormOpen} handleGeneratePDFsFormOpen={handleGeneratePDFsFormOpen} refetchStudents={setRetechStudents} /> : undefined}
+            {students ? <DataTable
+                rows={students}
+                handleAddFormOpen={handleAddFormOpen}
+                handleEditFormOpen={handleEditFormOpen}
+                handleCustormEmailFormOpen={handleCustomeEmailFormOpen}
+                collectNotifications={collectNotifications}
+                handleImportBundleOfStudentsFormOpen={handleImportBundleOfStudentsFormOpen}
+                handleGeneratePDFsFormOpen={handleGeneratePDFsFormOpen}
+                refetchStudents={setRetechStudents}
+                selectedStudents={getSelectedStudents}
+                handleGenerateCertificatesFormOpen={handleGenerateCertificatesFormOpen}
+            /> : undefined}
             {addFormOpen && <AddStudentForm handleFormClose={handleAddFormClose} collectNotifications={collectNotifications} />}
             {editFormOpen && <EditStudentForm handleFormClose={handleEditFormClose} collectNotifications={collectNotifications} editStudent={editFormOpen} />}
             {customEmailOpen && <CustomEmail handleFormClose={handleCustomeEmailFormClose} id={customEmailOpen} collectNotifications={collectNotifications} />}
             {ImportBundleOfStudentsFormOpen && <ImportBundleOfStudentsForm handleFormClose={handleImportBundleOfStudentsFormClose} collectNotifications={collectNotifications} />}
-            {GeneratePDFsFormOpen && <GeneratePDFs handleFormClose={handleGeneratePDFsFormClose} collectNotifications={collectNotifications} />}
+            {GeneratePDFsFormOpen && <GeneratePDFs handleFormClose={handleGeneratePDFsFormClose} collectNotifications={collectNotifications} selectedStudents={selectedStudents} />}
+            {GenerateCertificatesFormOpen && <GenerateCertificates handleFormClose={handleGenerateCertificatesFormClose} collectNotifications={collectNotifications} selectedStudents={selectedStudents} />}
         </>
     )
 }

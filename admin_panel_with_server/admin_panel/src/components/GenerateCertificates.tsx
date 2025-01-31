@@ -6,18 +6,6 @@ import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import baseAPI from "../states/api";
 import { Message } from "../states/type";
 
-const chunkArray = (array: string[], chunks: number): string[][] => {
-  const result = [];
-  const chunkSize = Math.ceil(array.length / chunks);
-
-  for (let i = 0; i < chunks; i++) {
-    const start = i * chunkSize;
-    const end = start + chunkSize;
-    result.push(array.slice(start, end));
-  }
-  return result;
-}
-
 interface PDFDocumentProps {
   pdfArrayBuffer: string;
   onPDFRender: (value: any) => void;
@@ -38,38 +26,27 @@ const PDFDocument: React.FC<PDFDocumentProps> = ({ pdfArrayBuffer, onPDFRender }
 }
 
 type FontWeight = 'normal' | 'medium' | 'bold';
+type TextTransform = 'Aa' | 'aa' | 'AA';
 interface placeholderConfigurationsTypes {
-  placeholderAmount: number,
-  addressLines: number,
-  placeholderInsideGap: number,
-  placeholdersGap: number,
   pdfPageActualSize: null | { width: number, height: number }
   pdfFontWeight: FontWeight,
   pdfFontSize: number,
-  pdfLineHeight: number,
+  pdfTextTransform: TextTransform,
 }
 
 interface PlaceholderProp {
   details: {
     name: string,
-    phone: string,
-    address: string
   },
   placeholderConfigurations: placeholderConfigurationsTypes,
-  onPositionsChange?: (positions: { x: number, y: number }[]) => void;
+  onPositionsChange?: (positions: { x: number, y: number }) => void;
 }
 
 const Placeholder: React.FC<PlaceholderProp> = ({ details, placeholderConfigurations, onPositionsChange }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const placeholderCardRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-
-  const formatedAddress = chunkArray(details.address.split(", "), placeholderConfigurations.addressLines)
-    .filter(chunk => chunk.length > 0)
-    .map(chunk => chunk.join(", "))
-    .join('<br />');
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
@@ -100,18 +77,15 @@ const Placeholder: React.FC<PlaceholderProp> = ({ details, placeholderConfigurat
   };
 
   useEffect(() => {
-    if (onPositionsChange && placeholderCardRef.current) {
-      const placeholderPositions = Array.from({ length: placeholderConfigurations.placeholderAmount }, (_, index) => {
-        const yOffset = index * (placeholderConfigurations.placeholdersGap + placeholderCardRef.current!.offsetHeight);
-        const xOffset = placeholderConfigurations.pdfPageActualSize!.width - (position.x + placeholderCardRef.current!.offsetWidth);
-        return {
-          x: position.x,
-          y: position.y + yOffset + (placeholderCardRef.current!.offsetHeight / 2),
-        };
-      });
-      onPositionsChange(placeholderPositions);
+    if (onPositionsChange && containerRef.current) {
+      const width = containerRef.current.offsetWidth;
+      const placeholderPosition = {
+        x: position.x + width / 2,
+        y: position.y,
+      };
+      onPositionsChange(placeholderPosition);
     }
-  }, [position, placeholderConfigurations.placeholderAmount, placeholderConfigurations.placeholdersGap, onPositionsChange, placeholderCardRef, placeholderCardRef.current]);
+  }, [position, placeholderConfigurations, onPositionsChange, containerRef, containerRef.current]);
 
   useEffect(() => {
     if (isDragging) {
@@ -133,35 +107,24 @@ const Placeholder: React.FC<PlaceholderProp> = ({ details, placeholderConfigurat
       width: `${placeholderConfigurations.pdfPageActualSize?.width}px`,
       margin: "auto",
     },
-    placeholderInside: {
-      marginBottom: `${placeholderConfigurations.placeholderInsideGap}px`,
+    placeholderStyle: {
       fontSize: `${placeholderConfigurations.pdfFontSize}px`,
-    },
-    placeholderGap: {
-      marginBottom: `${placeholderConfigurations.placeholdersGap}px`
+      width: "max-content",
+      left: position.x,
+      top: position.y,
+      textTransform: placeholderConfigurations.pdfTextTransform === "Aa" ? "capitalize" as 'capitalize' : placeholderConfigurations.pdfTextTransform === "AA" ? "uppercase" as 'uppercase' : "lowercase" as 'lowercase',
     }
   };
 
   return (
     <div style={style.placeholderContainer}>
-      <div ref={containerRef} style={{ width: "max-content", left: position.x, top: position.y }} className="position-relative">
-        {Array.from({ length: placeholderConfigurations.placeholderAmount }).map((_, index) => (
-          <div
-            key={index}
-            style={style.placeholderGap}
-            onMouseDown={handleMouseDown}
-            className="pdf-placeholder-card position-relative z-1 border border-blue px-1 bg-primary"
-            ref={index === 0 ? placeholderCardRef : null}
-          >
-            <p className={`fw-${placeholderConfigurations.pdfFontWeight}`} style={{ ...style.placeholderInside, lineHeight: 1 }}>{details.name}</p>
-            <p
-              className={`fw-${placeholderConfigurations.pdfFontWeight}`}
-              style={{ ...style.placeholderInside, lineHeight: `${placeholderConfigurations.pdfLineHeight}` }}
-              dangerouslySetInnerHTML={{ __html: formatedAddress }}
-            ></p>
-            <p className={`fw-${placeholderConfigurations.pdfFontWeight}`} style={{ ...style.placeholderInside, lineHeight: 1 }}>{details.phone}</p>
-          </div>
-        ))}
+      <div
+        ref={containerRef}
+        style={style.placeholderStyle}
+        onMouseDown={handleMouseDown}
+        className="pdf-placeholder-card position-relative z-1 border border-blue px-1 bg-primary"
+      >
+        <p className={`m-0 fw-${placeholderConfigurations.pdfFontWeight}`} style={{ lineHeight: 1 }}>{details.name}</p>
       </div>
     </div>
   );
@@ -177,30 +140,25 @@ interface props {
  * 
  * @param {functions} handleFormClose - Controle Form Close
  * @param {functions} collectNotifications - Notification Collect Function
+ * @param {functions} selectedStudents
  * @returns {JSX.Element}
  * @since 1.1.0
  */
-const GeneratePDFs: React.FC<props> = ({ handleFormClose, collectNotifications, selectedStudents }) => {
+const GenerateCertificates: React.FC<props> = ({ handleFormClose, collectNotifications, selectedStudents }) => {
   const PDFfileRef = useRef<HTMLInputElement | null>(null);
   const [PDFBlobURL, getPDFBlobURL] = useState<string | null>(null);
   const [DownloadLink, getDownloadLink] = useState<{ url: string, filename: string } | undefined>(undefined);
   const [isPDFGenerating, setIsPDFGenerating] = useState<boolean>(false);
-  const [placeholderTestData, setPlaceholderTestData] = useState<{ name: string, phone: string, address: string }>({
+  const [placeholderTestData, setPlaceholderTestData] = useState<{ name: string }>({
     name: "Student Name",
-    phone: "94734567890",
-    address: "No. 45/12, Lakshmanperera Road, Kohuwala South, Nugegoda 10250, Western Province, Sri Lanka"
   });
   const [placeholderConfigurations, setPlaceholderConfigurations] = useState<placeholderConfigurationsTypes>({
-    placeholderAmount: 1,
-    addressLines: 2,
-    placeholderInsideGap: 10,
-    placeholdersGap: 20,
     pdfPageActualSize: null,
     pdfFontWeight: 'normal',
     pdfFontSize: 16,
-    pdfLineHeight: 1,
+    pdfTextTransform: "Aa"
   });
-  const [placeholderPositions, getPlaceholderPositions] = useState<{ x: number; y: number }[] | null>(null);
+  const [placeholderPositions, getPlaceholderPositions] = useState<{ x: number; y: number } | null>(null);
 
   const handlePDFTemplatePreview = async (event: React.MouseEvent<HTMLInputElement>) => {
     const currentElement = event.currentTarget;
@@ -216,7 +174,7 @@ const GeneratePDFs: React.FC<props> = ({ handleFormClose, collectNotifications, 
     try {
       if (!PDFBlobURL) {
         collectNotifications({
-          message: "PDF file not found. Please upload a template first.",
+          message: "PDF template file not found. Please upload a template first.",
           from: "Front App",
           error: true
         });
@@ -231,9 +189,9 @@ const GeneratePDFs: React.FC<props> = ({ handleFormClose, collectNotifications, 
       formData.append("placeholderConfigurations", JSON.stringify(placeholderConfigurations));
       formData.append("placeholderPositions", JSON.stringify(placeholderPositions));
       formData.append("selectedStudents", JSON.stringify(selectedStudents));
-      formData.append('uploadPDF', PDFFile, "pdf-template.pdf");
+      formData.append('uploadPDF', PDFFile, "pdf-certificate-template.pdf");
 
-      const response = await fetch(`${baseAPI}/admin-panel/generatepdfs`, {
+      const response = await fetch(`${baseAPI}/admin-panel/generatecertificate`, {
         method: 'POST',
         body: formData,
       });
@@ -245,21 +203,21 @@ const GeneratePDFs: React.FC<props> = ({ handleFormClose, collectNotifications, 
       }
 
       const contentDisposition = response.headers.get("Content-Disposition");
-      const filename = (contentDisposition?.split("filename=")[1]?.replace(/"/g, "") ?? "generated-address-file") + ".pdf";
+      const filename = (contentDisposition?.split("filename=")[1]?.replace(/"/g, "") ?? "generated-certificates-file") + ".pdf";
 
       const generatePDFBlob = await response.blob();
       const generatePDFURL = URL.createObjectURL(generatePDFBlob);
 
       getDownloadLink({ url: generatePDFURL, filename });
       collectNotifications({
-        message: "PDFs generated successfully! Ready for download.",
+        message: "Certificates generated successfully! Ready for download.",
         from: "Front App",
         error: false
       });
 
     } catch (error) {
       collectNotifications({
-        message: error instanceof Error ? error.message : "PDF generation failed",
+        message: error instanceof Error ? error.message : "Certificate generation failed",
         from: "Front App",
         error: true
       });
@@ -298,6 +256,7 @@ const GeneratePDFs: React.FC<props> = ({ handleFormClose, collectNotifications, 
     const { doc } = event;
     doc.getPage(1).then((page: any) => {
       const viewport = page.getViewport({ scale: 1 });
+      console.log(viewport.width + " - " + viewport.height);
       setPlaceholderConfigurations((preValue) => ({ ...preValue, pdfPageActualSize: { width: viewport.width, height: viewport.height } }));
     });
   }
@@ -308,7 +267,7 @@ const GeneratePDFs: React.FC<props> = ({ handleFormClose, collectNotifications, 
         <div style={{ minWidth: "40vw" }}>
           <button type="button" className="btn-close" onClick={handleFormClose} aria-label="Close"></button>
           <div className="form-container generate-pdfs pt-3 pb-2">
-            <h4>Generate PDFs</h4>
+            <h4>Generate Certificates</h4>
             {!PDFBlobURL ?
               <div>
                 <label htmlFor="excelFileUpload" className="form-label">Upload The Template</label>
@@ -325,11 +284,17 @@ const GeneratePDFs: React.FC<props> = ({ handleFormClose, collectNotifications, 
                     <label htmlFor="placeholder-values" className="form-label w-100 text-center fs-6 fw-bold">Placeholder Templates</label>
                     <div className="mb-3">
                       <div className="input-group input-group-sm mb-0">
-                        <input id="name" type="name" className="form-control w-25" placeholder="Full Name" onChange={(e) => setPlaceholderTestData((preValue) => ({ ...preValue, name: e.currentTarget.value }))} value={placeholderTestData.name} aria-label="Placeholder Example Full Name" aria-describedby="inputGroup-sizing-sm" maxLength={50} />
-                        <input id="phone" type="tel" className="form-control w-25" placeholder="94734567890" onChange={(e) => setPlaceholderTestData((preValue) => ({ ...preValue, phone: e.currentTarget.value }))} value={placeholderTestData.phone} aria-label="Placeholder Phone Number" aria-describedby="inputGroup-sizing-sm" pattern="[0-9]{11}" maxLength={11} />
-                      </div>
-                      <div className="input-group mb-0">
-                        <input id="address" type="text" className="form-control w-50" placeholder="Address" onChange={(e) => setPlaceholderTestData((preValue) => ({ ...preValue, address: e.currentTarget.value }))} value={placeholderTestData.address} aria-label="Placeholder Address" aria-describedby="inputGroup-sizing-sm" maxLength={200} />
+                        <input
+                          id="placeholder-student-name"
+                          type="name"
+                          className="form-control w-25"
+                          placeholder="Full Name"
+                          onChange={(e) => setPlaceholderTestData({ name: e.currentTarget.value })}
+                          value={placeholderTestData.name}
+                          aria-label="Placeholder Example Full Name"
+                          aria-describedby="inputGroup-sizing-sm"
+                          maxLength={50}
+                        />
                       </div>
                     </div>
 
@@ -338,6 +303,7 @@ const GeneratePDFs: React.FC<props> = ({ handleFormClose, collectNotifications, 
                       <button
                         type="button"
                         className={`btn border fw-${placeholderConfigurations.pdfFontWeight}`}
+                        style={{ width: "40px" }}
                         onClick={() =>
                           setPlaceholderConfigurations((preValue) => {
                             const preFontWeight = preValue.pdfFontWeight;
@@ -347,6 +313,19 @@ const GeneratePDFs: React.FC<props> = ({ handleFormClose, collectNotifications, 
                           )}
                       >
                         B
+                      </button>
+                      <button
+                        type="button"
+                        className="btn border btn-sm"
+                        style={{ width: "40px" }}
+                        onClick={() =>
+                          setPlaceholderConfigurations((preValue) => {
+                            const listOfTextTransforms: TextTransform[] = ['Aa', 'AA', "aa"];
+                            return { ...preValue, pdfTextTransform: listOfTextTransforms[(listOfTextTransforms.indexOf(preValue.pdfTextTransform) + 1) % listOfTextTransforms.length] }
+                          }
+                          )}
+                      >
+                        {placeholderConfigurations.pdfTextTransform}
                       </button>
                       <input
                         id="placeholder-font-size"
@@ -358,84 +337,6 @@ const GeneratePDFs: React.FC<props> = ({ handleFormClose, collectNotifications, 
                         min={4}
                         placeholder="Font Size"
                         aria-lable="Placeholders Font Size"
-                        aria-describedby="inputGroup-sizing-sm"
-                        required
-                      />
-                      <input
-                        id="placeholder-line-height"
-                        type="number"
-                        className="form-control"
-                        onChange={(e) => setPlaceholderConfigurations((preValue) => ({ ...preValue, pdfLineHeight: parseFloat(e.currentTarget.value) }))}
-                        value={placeholderConfigurations.pdfLineHeight}
-                        step={0.1}
-                        min={1}
-                        aria-lable="Text Line Height"
-                        aria-describedby="inputGroup-sizing-sm"
-                        required
-                      />
-                    </div>
-                    <div className="input-group input-group-sm mb-3">
-                      <span className="input-group-text" id="inputGroup-sizing-sm">Number Of Placeholders</span>
-                      <input
-                        id="placeholder-amount"
-                        type="number"
-                        className="form-control"
-                        onChange={(e) => setPlaceholderConfigurations((preValue) => ({ ...preValue, placeholderAmount: parseInt(e.currentTarget.value) }))}
-                        step={1}
-                        min={1}
-                        max={Math.min(10, selectedStudents.length)}
-                        placeholder="Default is 1"
-                        aria-label="Number of placeholder"
-                        aria-describedby="inputGroup-sizing-sm"
-                        required
-                      />
-                    </div>
-
-                    <div className="input-group input-group-sm mb-3">
-                      <span className="input-group-text" id="inputGroup-sizing-sm">Number Of Lines For Address</span>
-                      <input
-                        id="address-lines"
-                        type="number"
-                        className="form-control"
-                        onChange={(e) => setPlaceholderConfigurations((preValue) => ({ ...preValue, addressLines: parseInt(e.currentTarget.value) }))}
-                        step={1}
-                        min={2}
-                        max={5}
-                        placeholder="Default is 2"
-                        aria-label="Placeholder Address Lines"
-                        aria-describedby="inputGroup-sizing-sm"
-                        required
-                      />
-                    </div>
-
-                    <div className="input-group input-group-sm mb-3">
-                      <span className="input-group-text" id="inputGroup-sizing-sm">Placeholder Inside Gap</span>
-                      <input
-                        id="inside-gap"
-                        type="number"
-                        className="form-control"
-                        onChange={(e) => setPlaceholderConfigurations((preValue) => ({ ...preValue, placeholderInsideGap: parseInt(e.currentTarget.value) }))}
-                        step={1}
-                        min={0}
-                        max={80}
-                        placeholder="Default is 10"
-                        aria-label="Placeholder Inside Gap"
-                        aria-describedby="inputGroup-sizing-sm"
-                        required
-                      />
-                    </div>
-
-                    <div className="input-group input-group-sm mb-3">
-                      <span className="input-group-text" id="inputGroup-sizing-sm">Between Placeholders Gap</span>
-                      <input
-                        id="placeholders-gap"
-                        type="number"
-                        className="form-control"
-                        onChange={(e) => setPlaceholderConfigurations((preValue) => ({ ...preValue, placeholdersGap: parseInt(e.currentTarget.value) }))}
-                        step={1}
-                        min={0}
-                        placeholder="Default is 20"
-                        aria-label="Between placeholders gap"
                         aria-describedby="inputGroup-sizing-sm"
                         required
                       />
@@ -479,4 +380,4 @@ const GeneratePDFs: React.FC<props> = ({ handleFormClose, collectNotifications, 
   );
 }
 
-export default GeneratePDFs;
+export default GenerateCertificates;
