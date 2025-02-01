@@ -4,6 +4,7 @@ const path = require('path');
 const cors = require('cors');
 const logger = require('morgan');
 const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 
 const Auth = require('./controllers/admin/auth');
 const AuthLogin = require('./controllers/admin/loginAuth');
@@ -19,14 +20,35 @@ app.use(cors({
 }));
 
 app.use(session({
+  store: new SQLiteStore({
+    dir: './sessions',
+    db: 'sessions.db',
+    concurrentDB: true
+  }),
   secret: 'dyGu2wc)mg%E@5$#akJ7&S',
-  resave: true,
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24,
-    secure: false
-  },
+  resave: false,
   saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    secure: false,
+    sameSite: 'none'
+  }
 }));
+if (process.env.NODE_ENV === 'production') {
+  setInterval(() => {
+    try {
+      sessionStore.db.exec('VACUUM;');
+      console.log('SQLite maintenance: Database vacuum completed');
+    } catch (err) {
+      console.error('SQLite maintenance error:', err);
+    }
+  }, 604800000); // 7 days
+
+  setInterval(() => {
+    sessionStore.prune();
+  }, 1000 * 60 * 60 * 24); // 24 hours
+}
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -34,8 +56,7 @@ app.use(express.static(path.join(__dirname, 'admin_panel/build/')));
 
 app.use('/', indexRouter);
 // Admin Panel
-app.use('/admin-panel', adminPanelRouter);
-// app.use('/admin-panel', adminPanelRouter);
+app.use('/admin-panel', Auth, adminPanelRouter);
 
 // Supre Admin Login
 app.use('/admin-login', AuthLogin, adminLoginRouter);
@@ -59,3 +80,4 @@ app.get('*', function(req, res) {
 });
 
 module.exports = app;
+
