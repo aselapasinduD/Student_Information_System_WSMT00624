@@ -264,7 +264,7 @@ const GenerateCertificates: React.FC<props> = ({ handleFormClose, collectNotific
   return (
     <Fragment>
       <div className="form">
-        <div style={{ minWidth: "40vw" }}>
+        <div className="d-flex flex-column" style={{ minWidth: "40vw" }}>
           <button type="button" className="btn-close" onClick={handleFormClose} aria-label="Close"></button>
           <div className="form-container generate-pdfs pt-3 pb-2">
             <h4>Generate Certificates</h4>

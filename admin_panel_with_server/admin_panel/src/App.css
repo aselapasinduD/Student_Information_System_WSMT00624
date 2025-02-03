@@ -98,7 +98,11 @@
   display: flex;
   justify-content: space-between;
 }
-
+.form .btn-close{
+  margin-left: auto;
+  padding: 5px !important;
+  background-color: orangered;
+}
 .notification-container {
   z-index: 99999;
   position: fixed;

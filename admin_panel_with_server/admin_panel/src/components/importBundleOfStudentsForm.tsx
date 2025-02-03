@@ -260,8 +260,8 @@ const ImportBundleOfStudentsForm: React.FC<props> = ({ handleFormClose, collectN
     return (
         <Fragment>
             <div className="form">
-                <div style={{ width: "90vw" }}>
-                    <button type="button" className="btn-close btn-close-red" onClick={handleFormClose} aria-label="Close"></button>
+                <div className="d-flex flex-column" style={{ width: "90vw" }}>
+                    <button type="button" className="btn-close" onClick={handleFormClose} aria-label="Close"></button>
                     <div className="form-container import-bundles pt-3 pb-2">
                         <h4>Import Bundle Of Students</h4>
                         <form onSubmit={handleBundleFormSubmit}>

@@ -129,13 +129,13 @@ router.get('/googleform/code', async (req, res) => {
         student: {
           FullName: getDataByPartialHeader(headers, data, ['name']),
           Email: getDataByPartialHeader(headers, data, ['email address']),
-          WANumber: "94" + parseInt(getDataByPartialHeader(headers, data, ['whatsapp'])).toString(),
+          WANumber: "94" + parseInt(getDataByPartialHeader(headers, data, ['number'])).toString(),
           RegisterAt: getDataByPartialHeader(headers, data, ['timestamp'])
         }
       };
 
       // Add ReferralWA if it exists
-      const referralNumber = getDataByPartialHeader(headers, data,['referral'], ['whatsapp']);
+      const referralNumber = getDataByPartialHeader(headers, data,['referral']);
       if (referralNumber && referralNumber.trim() !== '') {
         payload.student.ReferralWA = "94" + parseInt(referralNumber).toString();
       }
@@ -147,7 +147,7 @@ router.get('/googleform/code', async (req, res) => {
       }
 
       // Add ReceiptURL if it exists
-      const receiptURL = getDataByPartialHeader(headers, data, ['receipt']);
+      const receiptURL = getDataByPartialHeader(headers, data, ['upload']);
       if (receiptURL && receiptURL.trim() !== '') {
         payload.student.ReceiptURL = receiptURL;
       }
@@ -388,6 +388,7 @@ router.post('/generatepdfs', upload.single("uploadPDF"), async (req, res) => {
           });
           currentVerticalOffset += placeholderInsideGap;
         });
+        await update.udpateStudentStatus({id: listOfStudents[studentIDsIndex], status: 'GA'});
       }
       pdfTemplatePage.drawText(`Page ${i}`, {
         x: width - 50,
@@ -448,7 +449,8 @@ router.post('/generatecertificate', upload.single("uploadPDF"), async (req, res)
       const [pdfTemplatePage] = await PDFDOC.copyPages(PDFTEMPLATEDOC, [0]);
       const { width, height } = pdfTemplatePage.getSize();
 
-      const [{ full_name }] = await read.getStudentById(listOfStudents[i - 1]);
+      const studentID = listOfStudents[i - 1];
+      const [{ full_name }] = await read.getStudentById(studentID);
 
       const listOfTextTransforms = ['Aa', 'AA', "aa"];
       let studentName = full_name;
@@ -477,6 +479,7 @@ router.post('/generatecertificate', upload.single("uploadPDF"), async (req, res)
       });
 
       PDFDOC.addPage(pdfTemplatePage);
+      await update.udpateStudentStatus({id: studentID, status: 'GC'});
     }
 
     const PDFDOCBYETS = await PDFDOC.save();

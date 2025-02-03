@@ -95,7 +95,7 @@ interface FilterOptions {
   value: string | null;
   options?: {
     below?: boolean,
-    NoN?: boolean
+    NaN?: boolean
   };
 }
 
@@ -151,13 +151,15 @@ function filter(rows: readonly Student[], options: FilterOptions[]) {
   filterdRows = filterdRows.filter((record) => options[3].value ? record.google_form_id === parseInt((options[3].value ? options[3].value : "")) : true);
   // Filter status
   filterdRows = filterdRows.filter((record) => {
+    // options.[4].options?.NaN this is the NaN value for status
     if (!options[4].value) return true;
     if (!record.status || record.status.length === 0) return false;
-    return Array.isArray(record.status) && record.status.some((status: string) => options[4].value?.toLowerCase().split(",").includes(status.toLowerCase()));
+    const hasMatch = Array.isArray(record.status) && record.status.some((status: string) => options[4].value?.toLowerCase().split(",").includes(status.toLowerCase()));
+    return options[4].options?.NaN ? !hasMatch : hasMatch;
   });
   // Fillter Address
   filterdRows = filterdRows.filter((record) => {
-    if (options[5].options?.NoN) return Boolean(!record.address);
+    if (options[5].options?.NaN) return Boolean(!record.address);
     if (record.address) return record.address.toLowerCase().includes((options[5].value ? options[5].value : "").toLowerCase());
     if (options[5].value) return false;
     return true
@@ -200,6 +202,14 @@ const StatusList = [
     status: 'ib',
     describe: 'Imported Bundle'
   },
+  {
+    status: 'GC',
+    describe: 'Generated Certificate'
+  },
+  {
+    status: 'GA',
+    describe: 'Generated List of Address'
+  },
 ]
 
 /**
@@ -220,9 +230,9 @@ const FilterMenus = (props: filterMenus) => {
   const [googleFormTitle, setGoogleFormTitle] = useState<string>("");
   const [status, setStatus] = React.useState<string[]>([]);
   const [valueAddress, getValueAddress] = useState<string>("");
-  const [isNonAddressChecked, setIsNonAddressChecked] = useState<boolean>(false);
+  const [isNaNAddressChecked, setIsNaNAddressChecked] = useState<boolean>(false);
   const [isDetailsChecked, setIsDetailsChecked] = useState<string | null>(null);
-
+  const [isNaNStatusCheck, setIsNaNStatusCheck] = useState<boolean>(false);
 
   const handleIdChange = (value: string) => {
     getValueFullName(value);
@@ -265,7 +275,6 @@ const FilterMenus = (props: filterMenus) => {
         if (Boolean(googleFormsArr.body.length)) {
           setGoogleFormTitleList([...googleFormsArr.body]);
         }
-        // getGoogleForms(googleFormsArr.body? formatGoogleFormList(googleFormsArr.body) : Loading);
       } catch (error) {
         console.log("Error fetching Google forms titles from server: ", error);
       }
@@ -296,12 +305,13 @@ const FilterMenus = (props: filterMenus) => {
           },
           {
             id: "status",
-            value: status.length === 0 ? null : status.join(",")
+            value: status.length === 0 ? null : status.join(","),
+            options: { NaN: isNaNStatusCheck }
           },
           {
             id: "address",
             value: valueAddress === "" ? null : valueAddress,
-            options: { NoN: isNonAddressChecked }
+            options: { NaN: isNaNAddressChecked }
           },
           {
             id: "isDetailsChecked",
@@ -310,7 +320,21 @@ const FilterMenus = (props: filterMenus) => {
         ]
       );
     }
-  }, [isDetailsChecked, valueFullName, valueNumberOfReferrals, valueRegisterAt, isBelowChecked, open, setfilteroptions, googleFormTitle, googleFormTitleList, status, valueAddress, isNonAddressChecked]);
+  }, [
+    isDetailsChecked,
+    valueFullName,
+    valueNumberOfReferrals,
+    valueRegisterAt,
+    isBelowChecked,
+    open,
+    setfilteroptions,
+    googleFormTitle,
+    googleFormTitleList,
+    status,
+    valueAddress,
+    isNaNAddressChecked,
+    isNaNStatusCheck
+  ]);
 
   return (
     <Menu
@@ -339,10 +363,10 @@ const FilterMenus = (props: filterMenus) => {
     >
       <MenuItem sx={{ display: "flex", gap: "4px" }}>
         <Button variant="contained" color="success" onClick={() => setIsDetailsChecked("true")}>
-          Complete
+          Confirm
         </Button>
         <Button variant="contained" color="error" onClick={() => setIsDetailsChecked("false")}>
-          Uncomplete
+          Unconfirm
         </Button>
         <Button variant="outlined" color="inherit" onClick={() => setIsDetailsChecked("")}>
           None
@@ -353,7 +377,7 @@ const FilterMenus = (props: filterMenus) => {
       </MenuItem>
       <MenuItem onKeyDown={(e) => e.stopPropagation()}>
         <TextField name="address" hiddenLabel label="Address" inputProps={{ value: valueAddress }} type='text' size='small' margin='none' sx={{ mr: 1, width: "100%" }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressChange(e.target.value)} />
-        <FormControlLabel control={<Checkbox checked={isNonAddressChecked} onChange={(e) => setIsNonAddressChecked(e.target.checked)} />} label="NoN" />
+        <FormControlLabel control={<Checkbox checked={isNaNAddressChecked} onChange={(e) => setIsNaNAddressChecked(e.target.checked)} />} label="NaN" />
       </MenuItem>
       <MenuItem onKeyDown={(e) => e.stopPropagation()}>
         <TextField name='number_of_referrals' placeholder='0' inputProps={{ pattern: "[0-9]{11}", type: "number", value: valueNumberOfReferrals }} hiddenLabel label="Referrals" size='small' margin='none' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNumberOfReferralsChange(e.target.value)} sx={{ mr: 1, width: '15ch' }} />
@@ -380,7 +404,7 @@ const FilterMenus = (props: filterMenus) => {
         </FormControl>
       </MenuItem>
       <MenuItem onKeyDown={(e) => e.stopPropagation()}>
-        <FormControl size="small" sx={{ width: "100%" }}>
+        <FormControl size="small" sx={{ width: "100%", mr: 1 }}>
           <InputLabel id="demo-multiple-chip-label">Status</InputLabel>
           <Select
             labelId="status-multiple-chip-label"
@@ -411,11 +435,12 @@ const FilterMenus = (props: filterMenus) => {
                 key={status.status}
                 value={status.status}
               >
-                {status.status.toUpperCase()}
+                {status.status.toUpperCase()} - {status.describe}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
+        <FormControlLabel control={<Checkbox checked={isNaNStatusCheck} onChange={(e) => setIsNaNStatusCheck(e.target.checked)} />} label="NaN" />
       </MenuItem>
       <MenuItem onKeyDown={(e) => e.stopPropagation()} onClick={handleClearFilters} style={{ justifyContent: "center" }}>
         <Typography align='center'>Clear Filters</Typography>
@@ -547,7 +572,10 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
             Students
           </Typography>
           <Typography variant="caption" gutterBottom sx={{ display: 'block' }}>
-            <strong>Status:</strong> Google Form - <Chip label="GF" sx={{ fontWeight: 600 }} /> | Certificate Emailed - <Chip label="CM" sx={{ fontWeight: 600 }} /> | Imported Bundle - <Chip label="IB" sx={{ fontWeight: 600 }} />
+            <strong>Status:</strong>
+            {StatusList.map((Status) => <>
+              {Status.describe} - <Chip label={`${Status.status.toUpperCase()}`} sx={{ fontWeight: 600 }} /> |
+            </>)}
           </Typography>
         </Stack>
       )}
@@ -752,8 +780,8 @@ const Row: React.FC<RowProps> = ({ row, index, isSelected, handleSelectClick, ha
                   </Tooltip>
                 </Typography>
                 <div className="d-grid gap-2 m-2" style={{ gridTemplateColumns: "1fr 1fr" }}>
-                  <button type="button" className='btn btn-danger btn-sm col' onClick={() => studentDetailsCheck(row.id, false)}>NO</button>
-                  <button type="button" className='btn btn-success btn-sm col' onClick={() => studentDetailsCheck(row.id, true)}>OK</button>
+                  <button type="button" className='btn btn-danger btn-sm col' onClick={() => studentDetailsCheck(row.id, false)}>Unconfirm</button>
+                  <button type="button" className='btn btn-success btn-sm col' onClick={() => studentDetailsCheck(row.id, true)}>Confirm</button>
                 </div>
               </Popover>
             </>

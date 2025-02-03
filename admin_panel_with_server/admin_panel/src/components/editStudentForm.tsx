@@ -129,7 +129,7 @@ const EditStudentForm: React.FC<props> = ({handleFormClose, collectNotifications
     return(
         <Fragment>
             <div className="form">
-                <div>
+                <div className="d-flex flex-column">
                     <button type="button" className="btn-close" onClick={handleFormClose} aria-label="Close"></button>
                     <div className="form-container">
                         <h4 className="heading">Edit Student Form</h4>

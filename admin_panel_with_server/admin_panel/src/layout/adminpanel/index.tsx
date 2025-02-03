@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 import DashBox from '../../components/dashPanelBox';
@@ -12,18 +12,18 @@ interface Props {
 }
 
 interface dashboard {
-    total_students: number;
+    total_google_forms: number;
     new_students: number;
+    total_students: number;
     eligible_students: number;
     ineligible_students: number;
-    total_google_forms: number;
 }
 const initialDashboard = {
-    total_students: 0,
+    total_google_forms: 0,
     new_students: 0,
+    total_students: 0,
     eligible_students: 0,
     ineligible_students: 0,
-    total_google_forms: 0,
 }
 
 /**
@@ -37,18 +37,26 @@ const AdminPanelLayout: React.FC<Props> = ({ notification }) => {
     const [isNotificationsVisible, setIsNotificationsVisible] = useState<boolean>(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [dashboardData, setDashboardData] = useState<dashboard>(initialDashboard);
+    const timersRef = useRef<Record<string, NodeJS.Timeout>>({});
 
     useEffect(() => {
-        if (!notification) return;
-        const newNotification = { id: Date.now().toString(), ...notification } as Notification;
+        if(!notification) return;
+        const newNotification = { id: Date.now().toString() + Math.round(Math.random() * 9999), ...notification } as Notification;
         setNotifications(prevNotifications => [...prevNotifications, newNotification]);
         setIsNotificationsVisible(true);
+        
+        const notificationCloseSetTimer = setTimeout(() => {
+            handleNotificationClose(newNotification.id);
+        }, 1000 * 5);
+
+        return () => clearTimeout(notificationCloseSetTimer);
+
     }, [notification]);
 
-    const handleNotificationClose = (notificationID: string) => {
+    const handleNotificationClose = (id: string) => {
         if (!isNotificationsVisible) return;
 
-        setNotifications(prevNotifications => prevNotifications.filter(notification => notification.id !== notificationID));
+        setNotifications(prevNotifications => prevNotifications.filter(notification => notification.id !== id));
         if (notifications.length - 1 === 0) setIsNotificationsVisible(false);
     };
 
@@ -59,9 +67,9 @@ const AdminPanelLayout: React.FC<Props> = ({ notification }) => {
 
     const handleOpenTab = (event: React.MouseEvent<HTMLButtonElement>) => {
         const button = event.currentTarget;
-        if (button) {
+        if(button){
             const buttonId = button.getAttribute('id');
-            switch (buttonId) {
+            switch(buttonId){
                 case "nav-students-tab":
                     window.location.assign("/admin-panel/student");
                     button.classList.add("active");
@@ -77,17 +85,17 @@ const AdminPanelLayout: React.FC<Props> = ({ notification }) => {
     }
 
     useEffect(() => {
-        async function handleDashboardFetch() {
+        async function handleDashboardFetch(){
             const response = await fetch(baseAPI + '/admin-panel/dashboard', {
                 method: "GET"
             });
-            if (response.ok) {
+            if(response.ok){
                 const data = await response.json();
                 setDashboardData(data.body);
             }
         }
         handleDashboardFetch();
-    }, []);
+    },[]);
 
     return (
         <div className="admin-panel">
@@ -106,18 +114,18 @@ const AdminPanelLayout: React.FC<Props> = ({ notification }) => {
                     </button>
                 )}
             </div>
-            <h4>Admin Panel 1.1v</h4>
+            <h4>Admin Panel 1.0v</h4>
             <div className='dash-panel mb-2'>
-                <DashBox title='Students' numbers={dashboardData.total_students} backgroundColor='#f8b34a' />
-                <DashBox title='Google Forms' numbers={dashboardData.total_google_forms} backgroundColor='#56c2fa' />
-                <DashBox title='New Students' numbers={dashboardData.new_students} backgroundColor='#7fba00' />
-                <DashBox title='Eligible Students' numbers={dashboardData.eligible_students} allStudents={dashboardData.total_students} backgroundColor='#58ce5c' />
-                <DashBox title='Ineligible Students' numbers={dashboardData.ineligible_students} allStudents={dashboardData.total_students} backgroundColor='#fd6770' />
+                <DashBox title='Students' numbers={dashboardData.total_students} backgroundColor='#f8b34a'/>
+                <DashBox title='Google Forms' numbers={dashboardData.total_google_forms} backgroundColor='#56c2fa'/>
+                <DashBox title='New Students' numbers={dashboardData.new_students} backgroundColor='#7fba00'/>
+                <DashBox title='Eligible Students' numbers={dashboardData.eligible_students} allStudents={dashboardData.total_students} backgroundColor='#58ce5c'/>
+                <DashBox title='Ineligible Students' numbers={dashboardData.ineligible_students} allStudents={dashboardData.total_students} backgroundColor='#fd6770'/>
             </div>
             <nav>
                 <div className="nav nav-tabs" id="nav-tab" role="tablist">
-                    <button className={`nav-link ${window.location.pathname.split('/')[2] === "student" ? "active" : window.location.pathname.split('/')[2] === undefined ? "active" : ""}`} id="nav-students-tab" type="button" role="tab" onClick={handleOpenTab}>Students</button>
-                    <button className={`nav-link ${window.location.pathname.split('/')[2] === "googleform" ? "active" : ""}`} id="nav-googleforms-tab" type="button" role="tab" onClick={handleOpenTab}>Google Forms</button>
+                    <button className={`nav-link ${window.location.pathname.split('/')[2] === "student" ? "active" : window.location.pathname.split('/')[2] === undefined? "active" : ""}`} id="nav-students-tab" type="button" role="tab" onClick={handleOpenTab}>Students</button>
+                    <button className={`nav-link ${window.location.pathname.split('/')[2] === "googleform" ? "active" : ""}` } id="nav-googleforms-tab" type="button" role="tab" onClick={handleOpenTab}>Google Forms</button>
                 </div>
             </nav>
             <Outlet />

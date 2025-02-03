@@ -208,7 +208,7 @@ const CustomEmail: React.FC<CustomeEmail> = ({ id, handleFormClose, collectNotif
     return (
         <Fragment>
             <div className="form">
-                <div className="h-100 position-relative">
+                <div className="h-100 position-relative d-flex flex-column">
                     <button type="button" className="btn-close" onClick={handleFormClose} aria-label="Close"></button>
                     <div className="form-container mailform-container">
                         <h4 className="heading">Send Mail</h4>
