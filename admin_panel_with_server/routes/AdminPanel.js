@@ -439,7 +439,7 @@ router.post('/generatecertificate', upload.single("uploadPDF"), async (req, res)
 
     const PDFDOC = await PDFDocument.create();
     PDFDOC.registerFontkit(fontKit);
-    const PDFFontByets = fs.readFileSync(path.join(__dirname, "../resources/fonts/", `pdf-font-${pdfFontWeight.toLowerCase() ?? "normal"}.ttf`));
+    const PDFFontByets = fs.readFileSync(path.join(__dirname, "../resources/fonts/", `certificate-font-${pdfFontWeight.toLowerCase() ?? "normal"}.otf`));
     const PDFFont = await PDFDOC.embedFont(PDFFontByets);
     pdfFontSize = pdfFontSize ?? 14;
 

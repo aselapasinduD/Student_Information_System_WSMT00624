@@ -30,7 +30,7 @@ class ImageProcess {
                 studentName = studentName;
         }
 
-        const fontFile = path.resolve('admin_panel_with_server','../resources/fonts/font-regular.ttf');
+        const fontFile = path.resolve('admin_panel_with_server','../resources/fonts/font-regular.otf');
         const textToSvg = TextToSVG.loadSync(fontFile);
         const metrics = textToSvg.getMetrics(studentName, { fontSize: textSize });
         const textWidth = metrics.width;
